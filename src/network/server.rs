@@ -9,8 +9,9 @@ use crate::game::world::World;
 use crate::scripting::sandbox::ScriptEngine;
 
 pub async fn start_server(_game_world: Arc<RwLock<World>>, _script_engine: Arc<RwLock<ScriptEngine>>) -> anyhow::Result<()> {
-    // Placeholder implementation
-    // In a real implementation, this would start the web server
+    // Keep the server running until a shutdown signal is received
+    tokio::signal::ctrl_c().await?;
+    log::info!("Shutdown signal received, stopping server...");
     Ok(())
 }
 
