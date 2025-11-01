@@ -6,7 +6,7 @@ pub struct Terrain {
 }
 
 #[derive(PartialEq)]
-enum ResourceType {
+pub enum ResourceType {
     Wood,
     Stone,
     Gold,
