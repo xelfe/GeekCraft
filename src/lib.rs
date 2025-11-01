@@ -1,40 +1,40 @@
-//! GeekCraft - Bibliothèque Principale
+//! GeekCraft - Main Library
 //! 
-//! Jeu de programmation inspiré de Screeps et Starcraft.
-//! Les joueurs programment des bots en JavaScript pour contrôler des unités.
+//! Programming game inspired by Screeps and Starcraft.
+//! Players program JavaScript bots to control units.
 
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 
-/// Module de gestion du jeu (monde, entités, simulation)
+/// Game management module (world, entities, simulation)
 pub mod game;
 
-/// Module API pour l'interface de scripting
+/// API module for scripting interface
 pub mod api;
 
-/// Module réseau (serveur, WebSocket, API REST)
+/// Network module (server, WebSocket, REST API)
 pub mod network;
 
-/// Module de scripting (sandbox JavaScript)
+/// Scripting module (JavaScript sandbox)
 pub mod scripting;
 
-/// Version du jeu
+/// Game version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Configuration par défaut du serveur
+/// Default server configuration
 pub mod config {
-    /// Port par défaut du serveur
+    /// Default server port
     pub const DEFAULT_PORT: u16 = 3030;
     
-    /// Adresse par défaut du serveur
+    /// Default server address
     pub const DEFAULT_HOST: &str = "127.0.0.1";
     
-    /// Nombre de ticks par seconde
+    /// Number of ticks per second
     pub const TICKS_PER_SECOND: u32 = 60;
     
-    /// Timeout maximum pour l'exécution d'un script (ms)
+    /// Maximum timeout for script execution (ms)
     pub const SCRIPT_TIMEOUT_MS: u64 = 100;
     
-    /// Mémoire maximale pour un script (MB)
+    /// Maximum memory for a script (MB)
     pub const SCRIPT_MAX_MEMORY_MB: usize = 128;
 }

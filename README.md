@@ -5,180 +5,181 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Description
-GeekCraft est un jeu de programmation inspiré de **Screeps** et **Starcraft**, où les joueurs programment leurs propres bots en **JavaScript** pour contrôler des unités dans un environnement de jeu en temps réel. 
 
-**Le moteur de jeu est headless par conception** - il ne fournit pas d'interface graphique intégrée. Les joueurs sont **libres de créer leur propre visualisation** en utilisant la technologie de leur choix (web, desktop, terminal, etc.). Un **viewer HTML de base** est fourni comme exemple et point de départ.
+GeekCraft is a programming game inspired by **Screeps** and **Starcraft**, where players write **JavaScript** bots to control units in a real-time strategy environment.
+
+**The game engine is headless by design** - it provides no integrated graphical interface. Players are **free to create their own visualization** using any technology they choose (web, desktop, terminal, etc.). A **basic HTML viewer** is provided as an example and starting point.
 
 ## Project Structure
 ```
 GeekCraft
 ├── src
-│   ├── main.rs          # Point d'entrée, initialise le serveur et démarre le moteur
-│   ├── lib.rs           # Bibliothèque principale, exporte les modules
+│   ├── main.rs          # Entry point, initializes the server and starts the engine
+│   ├── lib.rs           # Main library, exports modules
 │   ├── game
-│   │   ├── mod.rs       # Module de jeu
-│   │   ├── world.rs     # Structures et fonctions du monde de jeu
-│   │   ├── entities.rs   # Définit les entités (unités, bâtiments)
-│   │   └── simulation.rs # Logique de simulation (temps, interactions)
+│   │   ├── mod.rs       # Game module
+│   │   ├── world.rs     # Game world structures and functions
+│   │   ├── entities.rs   # Defines entities (units, buildings)
+│   │   └── simulation.rs # Simulation logic (time, interactions)
 │   ├── api
-│   │   ├── mod.rs       # Module API
-│   │   ├── scripting.rs  # Système de scripting pour les bots
-│   │   └── events.rs     # Événements de jeu
+│   │   ├── mod.rs       # API module
+│   │   ├── scripting.rs  # Scripting system for bots
+│   │   └── events.rs     # Game events
 │   ├── network
-│   │   ├── mod.rs       # Module réseau
-│   │   └── server.rs     # Communication client-serveur (WebSocket/REST)
+│   │   ├── mod.rs       # Network module
+│   │   └── server.rs     # Client-server communication (WebSocket/REST)
 │   └── scripting
-│       ├── mod.rs       # Module de scripting
-│       └── sandbox.rs    # Environnement sécurisé pour exécuter les scripts
+│       ├── mod.rs       # Scripting module
+│       └── sandbox.rs    # Secure environment for script execution
 ├── assets
-│   └── textures          # Textures d'exemple (optionnel)
+│   └── textures          # Example textures (optional)
 ├── examples
-│   ├── basic_bot.js      # Bot basique en JavaScript
-│   ├── advanced_bot.js   # Bot avancé avec stratégies
-│   ├── template_bot.js   # Template pour créer son bot
-│   ├── API_REFERENCE.md  # Documentation de l'API JavaScript
+│   ├── basic_bot.js      # Basic JavaScript bot
+│   ├── advanced_bot.js   # Advanced bot with strategies
+│   ├── template_bot.js   # Template for creating your bot
+│   ├── API_REFERENCE.md  # JavaScript API documentation
 │   └── viewer
-│       ├── index.html    # Viewer HTML de base
-│       ├── viewer.js     # Logique du viewer
-│       └── style.css     # Styles du viewer
+│       ├── index.html    # Basic HTML viewer
+│       ├── viewer.js     # Viewer logic
+│       └── style.css     # Viewer styles
 ├── tests
-│   └── integration_tests.rs # Tests d'intégration
-├── Cargo.toml            # Configuration Cargo
-├── BUILD.md              # Guide de construction détaillé
-└── README.md             # Documentation principale
+│   └── integration_tests.rs # Integration tests
+├── Cargo.toml            # Cargo configuration
+├── BUILD.md              # Detailed build guide
+└── README.md             # Main documentation
 ```
 
-## Caractéristiques
+## Features
 
-- 🎮 **Moteur de jeu Rust** - Performance et fiabilité
-- 🤖 **Programmation en JavaScript** - Créez vos bots avec un langage familier
-- 🌐 **API WebSocket/REST** - Communication temps réel avec vos clients
-- 🎨 **Headless par conception** - Aucun graphisme intégré, totale liberté de visualisation
-- 🖥️ **Viewer HTML d'exemple** - Point de départ pour créer votre propre interface
-- 🔒 **Sandbox JavaScript sécurisé** - Exécution sûre des scripts utilisateurs
-- 📊 **Simulation de monde** - Gestion des ressources, unités et combats
-- 🔌 **API ouverte** - Créez votre client avec la technologie de votre choix (React, Unity, terminal, etc.)
+- 🎮 **Rust Game Engine** - Performance and reliability
+- 🤖 **JavaScript Programming** - Create bots with a familiar language
+- 🌐 **WebSocket/REST API** - Real-time communication with your clients
+- 🎨 **Headless by Design** - No integrated graphics, total visualization freedom
+- 🖥️ **Example HTML Viewer** - Starting point for creating your own interface
+- 🔒 **Secure JavaScript Sandbox** - Safe execution of user scripts
+- 📊 **World Simulation** - Resource management, units, and combat
+- 🔌 **Open API** - Create your client with any technology (React, Unity, terminal, etc.)
 
 ## Installation
 
-### Prérequis
-- Rust 1.70+ ([installer Rust](https://rustup.rs))
-- Cargo (inclus avec Rust)
+### Prerequisites
+- Rust 1.70+ ([install Rust](https://rustup.rs))
+- Cargo (included with Rust)
 
-### Étapes d'installation
+### Installation Steps
 
-1. **Cloner le repository**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/xelfe/GeekCraft.git
    cd GeekCraft/GeekCraft
    ```
 
-2. **Construire le projet**
+2. **Build the project**
    ```bash
    cargo build --release
    ```
 
-3. **Lancer le serveur de jeu**
+3. **Start the game server**
    ```bash
    cargo run --release
    ```
 
-4. **Tester avec un bot d'exemple**
+4. **Test with an example bot**
    ```bash
-   # Le serveur démarre sur http://localhost:3030
-   # Soumettez votre bot via l'API ou l'interface web
+   # Server starts on http://localhost:3030
+   # Submit your bot via API or web interface
    ```
 
-## Démarrage Rapide
+## Quick Start
 
-### Créer votre premier bot
+### Create Your First Bot
 
-1. Copiez le template de bot :
+1. Copy the bot template:
    ```bash
    cp examples/template_bot.js my_bot.js
    ```
 
-2. Éditez `my_bot.js` avec votre stratégie :
+2. Edit `my_bot.js` with your strategy:
    ```javascript
    class MyBot {
        onTick(gameState) {
            const units = gameState.getMyUnits();
-           // Votre logique ici
+           // Your logic here
        }
    }
    module.exports = MyBot;
    ```
 
-3. Soumettez votre bot au serveur via l'API
+3. Submit your bot to the server via the API
 
-### Exemples disponibles
+### Available Examples
 
-- **`basic_bot.js`** - Bot simple pour débuter
-- **`advanced_bot.js`** - Stratégies avancées (rôles, construction, combat)
-- **`template_bot.js`** - Template vide pour créer votre bot
-- **`API_REFERENCE.md`** - Documentation complète de l'API
+- **`basic_bot.js`** - Simple bot to get started
+- **`advanced_bot.js`** - Advanced strategies (roles, construction, combat)
+- **`template_bot.js`** - Empty template for creating your bot
+- **`API_REFERENCE.md`** - Complete API documentation
 
-## Architecture Technique
+## Technical Architecture
 
 ### Backend (Rust)
-- **Moteur de jeu** : Simulation du monde, gestion des entités
-- **Serveur API** : WebSocket + REST pour la communication
-- **Sandbox JavaScript** : Exécution sécurisée des scripts utilisateurs
-- **Headless** : Aucun rendu graphique intégré
+- **Game Engine**: World simulation, entity management
+- **API Server**: WebSocket + REST for communication
+- **JavaScript Sandbox**: Secure execution of user scripts
+- **Headless**: No integrated graphics rendering
 
-### API JavaScript (pour les bots)
-- Accès au state du jeu
-- Contrôle des unités
-- Gestion des ressources
-- Construction de bâtiments
-- Stratégies de combat
+### JavaScript API (for bots)
+- Access to game state
+- Unit control
+- Resource management
+- Building construction
+- Combat strategies
 
-### Clients de visualisation
-- **Viewer HTML de base** fourni en exemple
-- **Créez le vôtre** : React, Vue, Unity, Godot, terminal ASCII, etc.
-- **API WebSocket** pour recevoir les mises à jour en temps réel
-- **Liberté totale** de design et de technologie
+### Visualization Clients
+- **Basic HTML viewer** provided as example
+- **Create your own**: React, Vue, Unity, Godot, ASCII terminal, etc.
+- **WebSocket API** to receive real-time updates
+- **Total freedom** of design and technology
 
-## Commandes utiles
+## Useful Commands
 
 ```bash
-# Développement
-cargo run                    # Lancer en mode debug
-cargo build --release        # Build optimisé
-cargo test                   # Lancer les tests
-cargo doc --open            # Générer et ouvrir la documentation
+# Development
+cargo run                    # Run in debug mode
+cargo build --release        # Optimized build
+cargo test                   # Run tests
+cargo doc --open            # Generate and open documentation
 
-# Exemples
+# Examples
 cargo run --example basic_bot
 ```
 
 ## Roadmap
 
-- [x] Structure de base du projet
-- [x] API JavaScript pour les bots
-- [ ] Moteur de simulation du monde
-- [ ] Serveur WebSocket/REST
-- [ ] Sandbox JavaScript sécurisé
-- [ ] Interface graphique de base
-- [ ] Système de ressources
-- [ ] Système de combat
-- [ ] Multijoueur
-- [ ] Replays et statistiques
+- [x] Basic project structure
+- [x] JavaScript API for bots
+- [ ] World simulation engine
+- [ ] WebSocket/REST server
+- [ ] Secure JavaScript sandbox
+- [ ] Basic graphical interface
+- [ ] Resource system
+- [ ] Combat system
+- [ ] Multiplayer
+- [ ] Replays and statistics
 
-## Contribution
+## Contributing
 
-Les contributions sont les bienvenues ! Voici comment participer :
+Contributions are welcome! Here's how to participate:
 
-1. Fork le projet
-2. Créez une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit vos changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrez une Pull Request
+1. Fork the project
+2. Create a branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Licence
+## License
 
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ## Contact
 
-Projet : [https://github.com/xelfe/GeekCraft](https://github.com/xelfe/GeekCraft)
+Project: [https://github.com/xelfe/GeekCraft](https://github.com/xelfe/GeekCraft)

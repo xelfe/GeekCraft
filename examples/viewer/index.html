@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,46 +12,46 @@
             <h1>🎮 GeekCraft Viewer</h1>
             <div class="connection-status">
                 <span id="status-indicator" class="status-disconnected"></span>
-                <span id="status-text">Déconnecté</span>
+                <span id="status-text">Disconnected</span>
             </div>
         </header>
 
         <div class="main-content">
-            <!-- Panneau de configuration -->
+            <!-- Configuration Panel -->
             <aside class="sidebar">
                 <section class="config-panel">
                     <h2>Configuration</h2>
                     <div class="input-group">
-                        <label for="server-url">URL du serveur :</label>
+                        <label for="server-url">Server URL:</label>
                         <input type="text" id="server-url" value="ws://localhost:3030/ws" />
                     </div>
-                    <button id="connect-btn" class="btn btn-primary">Connecter</button>
-                    <button id="disconnect-btn" class="btn btn-secondary" disabled>Déconnecter</button>
+                    <button id="connect-btn" class="btn btn-primary">Connect</button>
+                    <button id="disconnect-btn" class="btn btn-secondary" disabled>Disconnect</button>
                 </section>
 
                 <section class="game-info">
-                    <h2>Informations</h2>
+                    <h2>Information</h2>
                     <div class="info-item">
-                        <span class="label">Tick :</span>
+                        <span class="label">Tick:</span>
                         <span id="game-tick">0</span>
                     </div>
                     <div class="info-item">
-                        <span class="label">Joueurs :</span>
+                        <span class="label">Players:</span>
                         <span id="player-count">0</span>
                     </div>
                     <div class="info-item">
-                        <span class="label">Unités :</span>
+                        <span class="label">Units:</span>
                         <span id="unit-count">0</span>
                     </div>
-                </div>
+                </section>
 
                 <section class="players-panel">
-                    <h2>Joueurs</h2>
+                    <h2>Players</h2>
                     <div id="players-list"></div>
                 </section>
             </aside>
 
-            <!-- Zone de jeu -->
+            <!-- Game Area -->
             <main class="game-area">
                 <div class="canvas-container">
                     <canvas id="game-canvas" width="800" height="600"></canvas>
@@ -60,29 +60,29 @@
                 <div class="controls">
                     <button id="zoom-in" class="btn btn-sm">🔍 +</button>
                     <button id="zoom-out" class="btn btn-sm">🔍 -</button>
-                    <button id="reset-view" class="btn btn-sm">🎯 Centrer</button>
+                    <button id="reset-view" class="btn btn-sm">🎯 Center</button>
                     <div class="speed-control">
-                        <label>Vitesse :</label>
+                        <label>Speed:</label>
                         <input type="range" id="game-speed" min="0.5" max="3" step="0.5" value="1">
                         <span id="speed-value">1x</span>
                     </div>
                 </div>
             </main>
 
-            <!-- Panneau de détails -->
+            <!-- Details Panel -->
             <aside class="details-panel">
-                <h2>Détails</h2>
+                <h2>Details</h2>
                 <div id="selection-info">
-                    <p class="empty-state">Sélectionnez une unité pour voir ses détails</p>
+                    <p class="empty-state">Select a unit to see its details</p>
                 </div>
             </aside>
         </div>
 
-        <!-- Console de logs -->
+        <!-- Console Logs -->
         <footer class="console">
             <div class="console-header">
                 <h3>📋 Console</h3>
-                <button id="clear-console" class="btn btn-sm">Effacer</button>
+                <button id="clear-console" class="btn btn-sm">Clear</button>
             </div>
             <div id="console-output"></div>
         </footer>
