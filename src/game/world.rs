@@ -1,27 +1,28 @@
-struct Terrain {
+pub struct Terrain {
     id: u32,
     name: String,
     resource_type: ResourceType,
     resource_amount: u32,
 }
 
-enum ResourceType {
+#[derive(PartialEq)]
+pub enum ResourceType {
     Wood,
     Stone,
     Gold,
 }
 
-struct World {
+pub struct World {
     width: u32,
     height: u32,
     terrains: Vec<Terrain>,
 }
 
 impl World {
-    fn new(width: u32, height: u32) -> Self {
+    pub fn new() -> Self {
         World {
-            width,
-            height,
+            width: 100,
+            height: 100,
             terrains: Vec::new(),
         }
     }
