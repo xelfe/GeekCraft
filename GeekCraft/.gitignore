@@ -1,0 +1,45 @@
+# Logs
+*.log
+
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.exe
+*.pdb
+*.dll
+
+# Documentation build
+/target/doc/
+
+# Testing
+*.profraw
+*.profdata
+
+# Local configuration
+.env
+.env.local
+
+# User bots
+/user_bots/*.js
+!/user_bots/README.md
+
+# Assets cache
+/assets/cache/
+
+# Temporary files
+*.tmp
+*.temp
