@@ -3,6 +3,16 @@
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 use std::thread;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use crate::game::world::World;
+use crate::scripting::sandbox::ScriptEngine;
+
+pub async fn start_server(_game_world: Arc<RwLock<World>>, _script_engine: Arc<RwLock<ScriptEngine>>) -> anyhow::Result<()> {
+    // Placeholder implementation
+    // In a real implementation, this would start the web server
+    Ok(())
+}
 
 pub struct Server {
     address: String,

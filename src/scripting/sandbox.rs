@@ -7,6 +7,8 @@ pub struct Sandbox {
     variables: HashMap<String, f64>,
 }
 
+pub type ScriptEngine = Sandbox;
+
 impl Sandbox {
     pub fn new() -> Self {
         Sandbox {
@@ -25,7 +27,7 @@ impl Sandbox {
     }
 
     // Method to execute a script in the sandbox
-    pub fn execute_script(&self, script: &str) -> Result<(), String> {
+    pub fn execute_script(&self, _script: &str) -> Result<(), String> {
         // Here you would implement the logic to safely execute the script
         // For now, we will just return Ok to indicate success
         Ok(())
