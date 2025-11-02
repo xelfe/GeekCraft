@@ -1,174 +1,183 @@
 # GeekCraft
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
-![Rust](https://img.shields.io/badge/rust-1.70+-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
+<img src="https://img.shields.io/badge/version-0.1.0-blue">
+<img src="https://img.shields.io/badge/rust-1.70+-orange">
+<img src="https://img.shields.io/badge/license-MIT-green">
 
 ## Description
 
-GeekCraft is a programming game inspired by **Screeps** and **Starcraft**, where players write **JavaScript** bots to control units in a real-time strategy environment.
+GeekCraft is a programming game inspired by Screeps and Starcraft, where players write JavaScript bots to control units in a real-time strategy environment.
 
-**The game engine is headless by design** - it provides no integrated graphical interface. Players are **free to create their own visualization** using any technology they choose (web, desktop, terminal, etc.). A **basic HTML viewer** is provided as an example and starting point.
+The game engine is headless by design — it provides no integrated graphical interface. Players are free to create their own visualization using any technology they choose. A minimal HTML viewer is included as a simple example.
 
 ## Design Principles
-
-GeekCraft follows these core principles:
-
-- **Server in Rust**: The game server is implemented in Rust for performance, safety, and reliability.
-- **Player Freedom**: Players can use any scripting language via the API/server to control their bots, with JavaScript as the primary supported language.
-- **English First**: All documentation, code comments, and examples are in English for accessibility.
-- **Working Examples**: A functional JavaScript example is provided to help players get started, with room for supporting other languages in the future.
-- **Simple Viewer**: The included HTML viewer is intentionally simple because players are encouraged to build their own custom UI using any technology they prefer.
+- Server in Rust
+- Player Freedom (any scripting language via API, JavaScript example provided)
+- English First
+- Working Examples
+- Simple Viewer
 
 ## Project Structure
 ```
 GeekCraft
 ├── src
-│   ├── main.rs          # Entry point, initializes the server and starts the engine
-│   ├── lib.rs           # Main library, exports modules
+│   ├── main.rs              # Entry point, initializes the server and starts the engine
+│   ├── lib.rs               # Main library, exports modules
 │   ├── game
-│   │   ├── mod.rs       # Game module
-│   │   ├── world.rs     # Game world structures and functions
-│   │   ├── entities.rs   # Defines entities (units, buildings)
-│   │   └── simulation.rs # Simulation logic (time, interactions)
+│   │   ├── mod.rs
+│   │   ├── world.rs
+│   │   ├── entities.rs
+│   │   └── simulation.rs
 │   ├── api
-│   │   ├── mod.rs       # API module
-│   │   ├── scripting.rs  # Scripting system for bots
-│   │   └── events.rs     # Game events
+│   │   ├── mod.rs
+│   │   ├── scripting.rs     # Scripting system for bots (storage/execution)
+│   │   └── events.rs
 │   ├── network
-│   │   ├── mod.rs       # Network module
-│   │   └── server.rs     # Client-server communication (WebSocket/REST)
+│   │   ├── mod.rs
+│   │   └── server.rs        # Axum HTTP + WebSocket server
 │   └── scripting
-│       ├── mod.rs       # Scripting module
-│       └── sandbox.rs    # Secure environment for script execution
+│       ├── mod.rs
+│       └── sandbox.rs
 ├── assets
-│   └── textures          # Example textures (optional)
+│   └── textures
 ├── examples
-│   ├── basic_bot.js      # Basic JavaScript bot
-│   ├── advanced_bot.js   # Advanced bot with strategies
-│   ├── template_bot.js   # Template for creating your bot
-│   ├── API_REFERENCE.md  # JavaScript API documentation
+│   ├── basic_bot.js
+│   ├── advanced_bot.js
+│   ├── template_bot.js
+│   ├── API_REFERENCE.md
+│   ├── README.md            # API usage and client quick start
+│   ├── api_client_example.js
+│   ├── node_client_example.js
 │   └── viewer
-│       ├── index.html    # Basic HTML viewer
-│       ├── viewer.js     # Viewer logic
-│       └── style.css     # Viewer styles
+│       ├── index.html
+│       ├── viewer.js
+│       └── style.css
 ├── tests
-│   └── integration_tests.rs # Integration tests
-├── Cargo.toml            # Cargo configuration
-├── BUILD.md              # Detailed build guide
-└── README.md             # Main documentation
+│   └── integration_tests.rs
+├── Cargo.toml
+├── BUILD.md
+└── README.md
 ```
 
 ## Features
-
-- 🎮 **Rust Game Engine** - Performance and reliability
-- 🤖 **JavaScript Programming** - Create bots with a familiar language
-- 🌐 **WebSocket/REST API** - Real-time communication with your clients
-- 🎨 **Headless by Design** - No integrated graphics, total visualization freedom
-- 🖥️ **Example HTML Viewer** - Starting point for creating your own interface
-- 🔒 **Secure JavaScript Sandbox** - Safe execution of user scripts
-- 📊 **World Simulation** - Resource management, units, and combat
-- 🔌 **Open API** - Create your client with any technology (React, Unity, terminal, etc.)
+- Rust Game Engine
+- JavaScript Programming
+- WebSocket/REST API (Axum)
+- Headless by Design
+- Example HTML Viewer
+- Secure JavaScript Sandbox
+- World Simulation
+- Open API
 
 ## Installation
 
-### Prerequisites
-- Rust 1.70+ ([install Rust](https://rustup.rs))
-- Cargo (included with Rust)
+Prerequisites
+- Rust 1.70+ (rustup.rs)
+- Cargo
+- Optional: Node.js 18+ for Node examples
 
-### Installation Steps
+Build
+```bash
+git clone https://github.com/xelfe/GeekCraft.git
+cd GeekCraft
+cargo build --release
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/xelfe/GeekCraft.git
-   cd GeekCraft
-   ```
+Start the server
+```bash
+cargo run --release
+# HTTP: http://localhost:3030
+# WebSocket: ws://localhost:3030/ws
+# Override port: export GEEKCRAFT_PORT=3030
+```
 
-2. **Build the project**
-   ```bash
-   cargo build --release
-   ```
+## Quick Start (Server + Client)
 
-3. **Start the game server**
-   ```bash
-   cargo run --release
-   ```
+1) Start the server
+```bash
+cargo run --release
+```
 
-4. **Test with an example bot**
-   ```bash
-   # Server starts on http://localhost:3030
-   # Submit your bot via API or web interface
-   ```
+2) Submit your bot code (HTTP API)
+```bash
+curl -X POST http://localhost:3030/api/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "player_id": "myplayer",
+    "code": "class MyBot { onTick(gameState) { console.log(\\"Hello\\"); } }"
+  }'
+```
 
-## Quick Start
+3) Connect a client
+- Minimal WebSocket client:
+```javascript
+const ws = new WebSocket('ws://localhost:3030/ws');
+ws.onopen = () => ws.send(JSON.stringify({ type: 'getGameState' }));
+ws.onmessage = (e) => console.log('Received:', JSON.parse(e.data));
+```
+- HTML Viewer (example):
+```bash
+cd examples/viewer
+# macOS: open index.html
+# Linux: xdg-open index.html
+# Windows: double-click index.html
+```
+- Node.js example:
+```bash
+npm install ws node-fetch
+node examples/node_client_example.js
+```
 
-### Create Your First Bot
+More details and examples: see examples/README.md.
 
-1. Copy the bot template:
-   ```bash
-   cp examples/template_bot.js my_bot.js
-   ```
+## HTTP and WebSocket API
+- Base URL: http://localhost:3030
+- WebSocket: ws://localhost:3030/ws
 
-2. Edit `my_bot.js` with your strategy:
-   ```javascript
-   class MyBot {
-       onTick(gameState) {
-           const units = gameState.getMyUnits();
-           // Your logic here
-       }
-   }
-   module.exports = MyBot;
-   ```
+Endpoints
+- GET / — API info
+- GET /api/health — Health check
+- POST /api/submit — Submit player code (body: { "player_id": "string", "code": "string" })
+- GET /api/players — List players
+- GET /api/gamestate — Current game state
 
-3. Submit your bot to the server via the API
+Note: CORS is permissive during development; restrict origins for production.
 
-### Available Examples
-
-- **`basic_bot.js`** - Simple bot to get started
-- **`advanced_bot.js`** - Advanced strategies (roles, construction, combat)
-- **`template_bot.js`** - Empty template for creating your bot
-- **`API_REFERENCE.md`** - Complete API documentation
-
-## Technical Architecture
-
-### Backend (Rust)
-- **Game Engine**: World simulation, entity management
-- **API Server**: WebSocket + REST for communication
-- **JavaScript Sandbox**: Secure execution of user scripts
-- **Headless**: No integrated graphics rendering
-
-### JavaScript API (for bots)
-- Access to game state
-- Unit control
-- Resource management
-- Building construction
-- Combat strategies
-
-### Visualization Clients
-- **Basic HTML viewer** provided as example
-- **Create your own**: React, Vue, Unity, Godot, ASCII terminal, etc.
-- **WebSocket API** to receive real-time updates
-- **Total freedom** of design and technology
+## Create Your First Bot
+```bash
+cp examples/template_bot.js my_bot.js
+```
+```javascript
+class MyBot {
+  onTick(gameState) {
+    const units = gameState.getMyUnits();
+    // Your logic here
+  }
+}
+module.exports = MyBot;
+```
+Submit via the HTTP API as shown above.
 
 ## Useful Commands
 
 ```bash
-# Development
-cargo run                    # Run in debug mode
-cargo build --release        # Optimized build
-cargo test                   # Run tests
-cargo doc --open            # Generate and open documentation
+cargo run                     # Debug run
+cargo build --release         # Release build
+cargo test                    # Tests
+cargo doc --open              # Docs
 
-# Examples
-cargo run --example basic_bot
+# Quick API checks
+curl http://localhost:3030/api/health
+curl http://localhost:3030/api/players
+curl http://localhost:3030/api/gamestate
 ```
 
 ## Roadmap
 
 - [x] Basic project structure
 - [x] JavaScript API for bots
+- [x] WebSocket/REST server (Axum)
 - [ ] World simulation engine
-- [ ] WebSocket/REST server
 - [ ] Secure JavaScript sandbox
 - [ ] Basic graphical interface
 - [ ] Resource system
