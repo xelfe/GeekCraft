@@ -1,5 +1,30 @@
 # GeekCraft - JavaScript API Reference
 
+## Important Notice
+
+This API reference describes the **complete intended API** for GeekCraft. However, many features are currently **placeholders** and not yet implemented on the server side.
+
+### Current Server Support (v0.2.0+)
+
+**✅ WORKING FEATURES:**
+- Authentication system (register, login, logout with Bearer tokens)
+- Multiplayer support (concurrent authenticated users)
+- Game tick counter (real-time updates)
+- Player list (array of player IDs)
+- Code submission and storage
+
+**🚧 PLACEHOLDER FEATURES (NOT YET IMPLEMENTED):**
+- Units and unit management
+- Structures and buildings
+- Resources and resource collection
+- Movement and pathfinding
+- Combat system
+- Full game simulation engine
+
+The API described below represents the target implementation. Bot examples using these APIs will work once the server features are implemented. For current functionality, see the working examples: `auth_example.js`, `multiplayer_example.js`, and the HTML viewer.
+
+---
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Bot Structure](#bot-structure)
@@ -15,6 +40,8 @@
 ## Introduction
 
 GeekCraft allows players to control their units and bases via a JavaScript API. Your bot is a JavaScript class that responds to game events and controls units through the game state (GameState).
+
+**Note**: Currently, only basic bot structure and code submission are supported. Unit control, structures, and resources will be available in future releases.
 
 ---
 

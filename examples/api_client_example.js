@@ -2,15 +2,19 @@
  * GeekCraft API Client Example
  * 
  * This example demonstrates how to interact with the GeekCraft server
- * using both HTTP REST API and WebSocket connections.
+ * using both HTTP REST API and WebSocket connections with authentication.
  * 
  * @author GeekCraft Team
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 // Configuration
 const SERVER_URL = 'http://localhost:3030';
 const WS_URL = 'ws://localhost:3030/ws';
+
+// Authentication state
+let authToken = null;
+let username = null;
 
 /**
  * Example Bot Code
@@ -49,7 +53,62 @@ module.exports = MyBot;
 // ============================================================================
 
 /**
- * Check server health
+ * Register a new user account
+ * @param {string} username - Username (3-32 characters)
+ * @param {string} password - Password (minimum 6 characters)
+ */
+async function register(username, password) {
+    try {
+        const response = await fetch(`${SERVER_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        console.log('Registration response:', data);
+        return data;
+    } catch (error) {
+        console.error('Error registering:', error);
+        throw error;
+    }
+}
+
+/**
+ * Login and obtain authentication token
+ * @param {string} username - Username
+ * @param {string} password - Password
+ */
+async function login(username, password) {
+    try {
+        const response = await fetch(`${SERVER_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        console.log('Login response:', data);
+        
+        if (data.success && data.token) {
+            authToken = data.token;
+            username = data.username;
+            console.log('Authentication successful. Token saved.');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error logging in:', error);
+        throw error;
+    }
+}
+
+/**
+ * Check server health (public endpoint)
  */
 async function checkHealth() {
     try {
@@ -64,21 +123,22 @@ async function checkHealth() {
 }
 
 /**
- * Submit bot code to the server
- * @param {string} playerId - Your player ID
+ * Submit bot code to the server (requires authentication)
  * @param {string} code - Your bot code
  */
-async function submitCode(playerId, code) {
+async function submitCode(code) {
     try {
+        if (!authToken) {
+            throw new Error('Not authenticated. Please login first.');
+        }
+
         const response = await fetch(`${SERVER_URL}/api/submit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
-            body: JSON.stringify({
-                player_id: playerId,
-                code: code
-            })
+            body: JSON.stringify({ code })
         });
         
         const data = await response.json();
@@ -91,11 +151,19 @@ async function submitCode(playerId, code) {
 }
 
 /**
- * Get list of all players
+ * Get list of all players (requires authentication)
  */
 async function getPlayers() {
     try {
-        const response = await fetch(`${SERVER_URL}/api/players`);
+        if (!authToken) {
+            throw new Error('Not authenticated. Please login first.');
+        }
+
+        const response = await fetch(`${SERVER_URL}/api/players`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
         const data = await response.json();
         console.log('Players:', data);
         return data;
@@ -106,11 +174,19 @@ async function getPlayers() {
 }
 
 /**
- * Get current game state
+ * Get current game state (requires authentication)
  */
 async function getGameState() {
     try {
-        const response = await fetch(`${SERVER_URL}/api/gamestate`);
+        if (!authToken) {
+            throw new Error('Not authenticated. Please login first.');
+        }
+
+        const response = await fetch(`${SERVER_URL}/api/gamestate`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
         const data = await response.json();
         console.log('Game state:', data);
         return data;
@@ -125,19 +201,32 @@ async function getGameState() {
 // ============================================================================
 
 /**
- * Connect to the WebSocket server
+ * Connect to the WebSocket server with authentication
  * @param {function} onMessage - Callback for incoming messages
  */
 function connectWebSocket(onMessage) {
     const ws = new WebSocket(WS_URL);
     
     ws.onopen = () => {
-        console.log('WebSocket connected');
+        console.log('WebSocket connected, waiting for welcome message...');
     };
     
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         console.log('WebSocket message received:', data);
+        
+        // Handle welcome message and authenticate
+        if (data.type === 'welcome') {
+            console.log('Received welcome message, authenticating...');
+            if (!authToken) {
+                console.error('No auth token available. Please login first.');
+                ws.close();
+                return;
+            }
+            // Send authentication
+            ws.send(JSON.stringify({ type: 'auth', token: authToken }));
+        }
+        
         if (onMessage) {
             onMessage(data);
         }
@@ -173,44 +262,75 @@ function sendCommand(ws, command) {
 // ============================================================================
 
 /**
- * Example: Using HTTP API
+ * Example: Using HTTP API with authentication
  */
 async function httpApiExample() {
-    console.log('\n=== HTTP API Example ===\n');
+    console.log('\n=== HTTP API Example (with Authentication) ===\n');
     
-    // Check server health
+    // Step 1: Check server health (public endpoint)
     await checkHealth();
     
-    // Submit your bot code
-    await submitCode('player1', MY_BOT_CODE);
+    // Step 2: Register a new user (or skip if already registered)
+    console.log('\nRegistering user...');
+    try {
+        await register('player1', 'password123');  // Example credentials - use your own
+    } catch (error) {
+        console.log('User might already exist, continuing...');
+    }
     
-    // Get list of players
+    // Step 3: Login to get authentication token
+    console.log('\nLogging in...');
+    await login('player1', 'password123');  // Example credentials - use your own
+    
+    if (!authToken) {
+        console.error('Login failed, cannot continue');
+        return;
+    }
+    
+    // Step 4: Submit your bot code
+    console.log('\nSubmitting bot code...');
+    await submitCode(MY_BOT_CODE);
+    
+    // Step 5: Get list of players
+    console.log('\nGetting players list...');
     await getPlayers();
     
-    // Get game state
+    // Step 6: Get game state
+    console.log('\nGetting game state...');
     await getGameState();
 }
 
 /**
- * Example: Using WebSocket
+ * Example: Using WebSocket with authentication
  */
 function websocketExample() {
-    console.log('\n=== WebSocket Example ===\n');
+    console.log('\n=== WebSocket Example (with Authentication) ===\n');
+    
+    if (!authToken) {
+        console.error('Please login first using httpApiExample()');
+        return;
+    }
     
     // Connect to WebSocket
     const ws = connectWebSocket((message) => {
         // Handle incoming messages
         switch (message.type) {
             case 'welcome':
-                console.log('Received welcome message:', message.message);
+                console.log('Server welcome:', message.message);
+                break;
                 
-                // Request players list
-                sendCommand(ws, { type: 'getPlayers' });
+            case 'authResponse':
+                if (message.success) {
+                    console.log('WebSocket authenticated successfully');
+                    // Now we can request game data
+                    sendCommand(ws, { type: 'getPlayers' });
+                } else {
+                    console.error('WebSocket authentication failed:', message.message);
+                }
                 break;
                 
             case 'playersResponse':
                 console.log('Current players:', message.players);
-                
                 // Request game state
                 sendCommand(ws, { type: 'getGameState' });
                 break;
@@ -228,6 +348,7 @@ function websocketExample() {
     
     // Clean up on exit
     setTimeout(() => {
+        console.log('\nClosing WebSocket connection...');
         ws.close();
     }, 5000);
 }
@@ -239,23 +360,22 @@ function websocketExample() {
 /**
  * Run all examples
  * 
- * Note: This example assumes you're running it in a Node.js environment
- * with fetch API available (Node.js 18+) or with a polyfill.
+ * Note: This example assumes you're running it in a browser environment.
+ * For Node.js, use node_client_example.js instead.
  */
 async function main() {
     console.log('GeekCraft API Client Example');
     console.log('=============================\n');
     
     try {
-        // Run HTTP API examples
+        // Run HTTP API examples with authentication
         await httpApiExample();
         
         // Wait a bit before WebSocket example
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Run WebSocket example
-        // Note: This needs to be adapted for Node.js (use 'ws' package)
-        // websocketExample();
+        // Run WebSocket example (uses token from httpApiExample)
+        websocketExample();
         
     } catch (error) {
         console.error('Error running examples:', error);
@@ -265,6 +385,8 @@ async function main() {
 // Export functions for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
+        register,
+        login,
         checkHealth,
         submitCode,
         getPlayers,
@@ -276,7 +398,14 @@ if (typeof module !== 'undefined' && module.exports) {
     };
 }
 
-// Run main if executed directly (Node.js only)
-if (typeof require !== 'undefined' && typeof module !== 'undefined' && require.main === module) {
-    main();
+// Run main if executed directly (browser console)
+if (typeof window !== 'undefined') {
+    console.log('GeekCraft API Client loaded.');
+    console.log('Run main() to execute examples, or use individual functions:');
+    console.log('  - register(username, password)');
+    console.log('  - login(username, password)');
+    console.log('  - submitCode(code)');
+    console.log('  - getPlayers()');
+    console.log('  - getGameState()');
+    console.log('  - connectWebSocket(onMessage)');
 }
