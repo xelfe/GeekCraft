@@ -221,6 +221,11 @@ struct MongoBackend {
     db_name: String,
 }
 
+// Note: This implementation creates a new runtime for each operation to maintain
+// compatibility with the synchronous AuthDatabaseTrait. For production use with
+// high throughput, consider refactoring the trait to be async or using a shared
+// runtime via tokio::runtime::Handle::current().block_on().
+
 impl MongoBackend {
     fn new(mongodb_url: &str) -> Result<Self, String> {
         // Extract database name from URL or use default
