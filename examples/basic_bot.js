@@ -1,9 +1,9 @@
 /**
  * Basic Bot Example for GeekCraft
  * 
- * Ce bot démontre l'API de base disponible pour les joueurs.
- * Les joueurs peuvent écrire leurs propres bots en JavaScript pour contrôler
- * des unités dans le jeu.
+ * This bot demonstrates the basic API available to players.
+ * Players can write their own bots in JavaScript to control
+ * units in the game.
  * 
  * @author GeekCraft Team
  * @version 1.0.0
@@ -16,61 +16,61 @@ class BasicBot {
     }
 
     /**
-     * Appelé quand le bot est initialisé
+     * Called when the bot is initialized
      */
     onInit() {
         console.log(`${this.name} v${this.version} initialized!`);
     }
 
     /**
-     * Appelé à chaque tick du jeu (boucle principale)
-     * @param {GameState} gameState - L'état actuel du jeu
+     * Called every game tick (main loop)
+     * @param {GameState} gameState - The current game state
      */
     onTick(gameState) {
-        // Récupérer toutes vos unités
+        // Get all your units
         const myUnits = gameState.getMyUnits();
         
-        // Stratégie simple : déplacer toutes les unités vers les ressources
+        // Simple strategy: move all units toward resources
         for (const unit of myUnits) {
             if (unit.isIdle()) {
                 const nearestResource = gameState.findNearestResource(unit.position);
                 
                 if (nearestResource) {
                     unit.moveTo(nearestResource.position);
-                    console.log(`Unit ${unit.id} se déplace vers une ressource à ${nearestResource.position}`);
+                    console.log(`Unit ${unit.id} moving to resource at ${nearestResource.position}`);
                 } else {
-                    console.log(`Aucune ressource trouvée pour l'unité ${unit.id}`);
+                    console.log(`No resource found for unit ${unit.id}`);
                 }
             }
         }
     }
 
     /**
-     * Appelé quand une unité est créée
-     * @param {Unit} unit - L'unité nouvellement créée
+     * Called when a unit is created
+     * @param {Unit} unit - The newly created unit
      */
     onUnitCreated(unit) {
-        console.log(`Nouvelle unité créée : ${unit.id} de type ${unit.type}`);
+        console.log(`New unit created: ${unit.id} of type ${unit.type}`);
     }
 
     /**
-     * Appelé quand une unité est détruite
-     * @param {Unit} unit - L'unité détruite
+     * Called when a unit is destroyed
+     * @param {Unit} unit - The destroyed unit
      */
     onUnitDestroyed(unit) {
-        console.log(`Unité détruite : ${unit.id}`);
+        console.log(`Unit destroyed: ${unit.id}`);
     }
 
     /**
-     * Appelé quand des ressources sont collectées
-     * @param {Unit} unit - L'unité qui collecte
-     * @param {Resource} resource - La ressource collectée
-     * @param {number} amount - La quantité collectée
+     * Called when resources are collected
+     * @param {Unit} unit - The unit collecting
+     * @param {Resource} resource - The resource collected
+     * @param {number} amount - The amount collected
      */
     onResourceCollected(unit, resource, amount) {
-        console.log(`Unité ${unit.id} a collecté ${amount} ${resource.type}`);
+        console.log(`Unit ${unit.id} collected ${amount} ${resource.type}`);
     }
 }
 
-// Exporter le bot
+// Export the bot
 module.exports = BasicBot;

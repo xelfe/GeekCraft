@@ -33,16 +33,16 @@ class GeekCraftViewer {
     }
 
     setupEventListeners() {
-        // Boutons de connexion
+        // Connection buttons
         document.getElementById('connect-btn').addEventListener('click', () => this.connect());
         document.getElementById('disconnect-btn').addEventListener('click', () => this.disconnect());
         
-        // Contrôles de caméra
+        // Camera controls
         document.getElementById('zoom-in').addEventListener('click', () => this.zoom(1.2));
         document.getElementById('zoom-out').addEventListener('click', () => this.zoom(0.8));
         document.getElementById('reset-view').addEventListener('click', () => this.resetView());
         
-        // Contrôle de vitesse
+        // Speed control
         document.getElementById('game-speed').addEventListener('input', (e) => {
             document.getElementById('speed-value').textContent = e.target.value + 'x';
             this.sendCommand({ type: 'setSpeed', speed: parseFloat(e.target.value) });
