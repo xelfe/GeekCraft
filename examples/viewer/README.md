@@ -2,16 +2,25 @@
 
 This HTML viewer is a basic example of a visualization client for GeekCraft. It demonstrates how to connect to the game server and display the game state in real-time.
 
+## Current Server Support (v0.2.0)
+
+The server currently provides only basic game data:
+- ✅ **DYNAMIC**: Game tick counter (updated in real-time)
+- ✅ **DYNAMIC**: List of player IDs (strings)
+- 🚧 **PLACEHOLDER**: Units, buildings, resources, and detailed player stats are not yet implemented on the server
+
+The viewer displays real-time data for supported features and shows "N/A" for features awaiting server implementation.
+
 ## Features
 
 - ✅ WebSocket connection to the server
-- ✅ Real-time display of the game world
+- ✅ Real-time display of tick and player count
 - ✅ HTML5 canvas for rendering
 - ✅ Responsive user interface
 - ✅ Integrated log console
 - ✅ Camera controls (zoom, scroll)
-- ✅ Unit selection
-- ✅ Detailed information on players and units
+- 🚧 Unit selection (placeholder for future development)
+- 🚧 Detailed information on players and units (placeholder for future development)
 
 ## Usage
 
@@ -82,24 +91,80 @@ Modern styles with:
 
 ## WebSocket Protocol
 
-The viewer communicates with the server via WebSocket in JSON:
+The viewer communicates with the server via WebSocket in JSON.
 
-### Incoming Messages (server → client)
+### Current Implementation (v0.2.0)
+
+#### Incoming Messages (server → client)
+
+**Welcome message:**
+```javascript
+{
+    "type": "welcome",
+    "message": "Connected to GeekCraft server",
+    "version": "0.2.0"
+}
+```
+
+**Game state response (DYNAMIC - currently supported):**
+```javascript
+{
+    "type": "gameStateResponse",
+    "tick": 123,              // Game tick counter
+    "players": ["player1", "player2"]  // Array of player IDs (strings)
+}
+```
+
+**Players list response (DYNAMIC - currently supported):**
+```javascript
+{
+    "type": "playersResponse",
+    "players": ["player1", "player2"]  // Array of player IDs (strings)
+}
+```
+
+**Error response:**
+```javascript
+{
+    "type": "error",
+    "message": "Error description"
+}
+```
+
+#### Outgoing Messages (client → server)
+
+**Request game state:**
+```javascript
+{
+    "type": "getGameState"
+}
+```
+
+**Request players list:**
+```javascript
+{
+    "type": "getPlayers"
+}
+```
+
+### Future Protocol Extensions (PLACEHOLDER)
+
+The following message types are prepared in the viewer code but not yet implemented on the server:
 
 ```javascript
-// Complete game state
+// Complete game state (future)
 {
     "type": "gameState",
     "data": {
         "tick": 123,
         "players": [...],
-        "units": [...],
-        "buildings": [...],
-        "resources": [...]
+        "units": [...],      // Not yet implemented
+        "buildings": [...],  // Not yet implemented
+        "resources": [...]   // Not yet implemented
     }
 }
 
-// Incremental update
+// Incremental update (future)
 {
     "type": "gameUpdate",
     "data": {
@@ -108,7 +173,7 @@ The viewer communicates with the server via WebSocket in JSON:
     }
 }
 
-// Game event
+// Game event (future)
 {
     "type": "event",
     "data": {
@@ -116,17 +181,8 @@ The viewer communicates with the server via WebSocket in JSON:
         "unitId": 42
     }
 }
-```
 
-### Outgoing Messages (client → server)
-
-```javascript
-// Request game state
-{
-    "type": "getGameState"
-}
-
-// Change game speed
+// Change game speed (future)
 {
     "type": "setSpeed",
     "speed": 2.0
@@ -149,24 +205,20 @@ Edit `style.css` to change colors, sizes, etc.
 
 ### Add Features
 
-The viewer is designed to be easily extensible:
+The viewer is designed to be easily extensible. Many placeholder functions are already included for future development:
 
-1. **New entity type** : Add a `render[Type]()` method in `viewer.js`
+1. **New entity type** : Uncomment the corresponding `render[Type]()` method in `viewer.js` when server support is added
 2. **New command** : Add a button and use `sendCommand()`
 3. **New panel** : Modify `index.html` and `style.css`
 
-### Example: Add a Pause Button
+**Important**: Before adding new features to the viewer, ensure the server provides the necessary data via the WebSocket protocol.
 
-```html
-<!-- In index.html -->
-<button id="pause-btn" class="btn btn-sm">⏸️ Pause</button>
-```
+### Example: Enable Unit Rendering (when server support is added)
 
 ```javascript
-// In viewer.js, setupEventListeners() method
-document.getElementById('pause-btn').addEventListener('click', () => {
-    this.sendCommand({ type: 'pause' });
-});
+// In viewer.js, render() method
+// Uncomment this line:
+this.renderUnits();
 ```
 
 ## Create Your Own Viewer
@@ -212,19 +264,23 @@ ws.onopen = () => {
 ## Troubleshooting
 
 ### The Viewer Won't Connect
-- Check that the GeekCraft server is running
-- Check the WebSocket URL in the interface
+- Check that the GeekCraft server is running (`cargo run --release`)
+- Check the WebSocket URL in the interface (default: `ws://localhost:3030/ws`)
 - Look at the browser console (F12) for errors
 
 ### Nothing Displays on the Canvas
-- Check that you are receiving data (bottom console)
-- Check that the server is sending game data
-- Adjust the zoom if elements are out of view
+- The canvas currently shows only a grid as units, buildings, and resources are not yet implemented on the server
+- Check that you are receiving data in the console (bottom panel)
+- Verify that the "Tick" and "Players" fields in the left sidebar are updating
+
+### Players Show "N/A" for Stats
+- This is expected behavior - the server currently only provides player IDs
+- Resources and unit counts will be displayed when server support is added
 
 ### Poor Performance
 - Reduce the server update frequency
-- Optimize rendering (only redraw what changes)
 - Use a smaller canvas
+- The performance will improve once the full game state is implemented
 
 ## Resources
 
