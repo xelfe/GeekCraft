@@ -33,6 +33,9 @@ class GeekCraftViewer {
         // Connection state
         this.connected = false;
         
+        // Polling interval for auto-updates
+        this.pollingInterval = null;
+        
         this.init();
     }
 
@@ -91,6 +94,7 @@ class GeekCraftViewer {
     }
 
     disconnect() {
+        this.stopPolling();
         if (this.ws) {
             this.ws.close();
         }
@@ -103,10 +107,14 @@ class GeekCraftViewer {
         
         // Request initial game state
         this.sendCommand({ type: 'getGameState' });
+        
+        // Start polling for updates
+        this.startPolling();
     }
 
     onDisconnected() {
         this.connected = false;
+        this.stopPolling();
         this.updateConnectionStatus(false);
         this.log('✗ Disconnected from server', 'warning');
     }
@@ -209,6 +217,24 @@ class GeekCraftViewer {
     sendCommand(command) {
         if (this.ws && this.connected) {
             this.ws.send(JSON.stringify(command));
+        }
+    }
+
+    startPolling() {
+        // Clear any existing interval to prevent duplicates
+        this.stopPolling();
+        
+        this.pollingInterval = setInterval(() => {
+            if (this.ws && this.connected) {
+                this.sendCommand({ type: 'getGameState' });
+            }
+        }, 1000);
+    }
+
+    stopPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
         }
     }
 
