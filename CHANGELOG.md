@@ -1,240 +1,240 @@
 # Changelog - GeekCraft
 
-Toutes les modifications notables du projet sont documentées ici.
+All notable changes to this project are documented here.
 
 ## [0.1.0] - 2025-11-01
 
-### Architecture Headless 🎮
+### Headless Architecture 🎮
 
-Le projet a été refactoré pour adopter une architecture **headless** (sans graphiques intégrés).
+The project has been refactored to adopt a **headless** architecture (no integrated graphics).
 
-### Ajouté ✅
+### Added ✅
 
-#### Exemples JavaScript pour les Bots
-- `examples/basic_bot.js` - Bot simple pour les débutants
-  - Déplacement vers ressources
-  - Gestion basique des unités
-  - Réponse aux événements
+#### JavaScript Examples for Bots
+- `examples/basic_bot.js` - Simple bot for beginners
+  - Movement to resources
+  - Basic unit management
+  - Event handling
   
-- `examples/advanced_bot.js` - Bot avancé avec stratégies complexes
-  - Système de rôles (workers, soldiers)
-  - Gestion avancée des ressources
-  - Construction de bases d'expansion
-  - Tactiques de combat en groupe
+- `examples/advanced_bot.js` - Advanced bot with complex strategies
+  - Role system (workers, soldiers)
+  - Advanced resource management
+  - Expansion base construction
+  - Group combat tactics
   
-- `examples/template_bot.js` - Template vide pour démarrer
-  - Structure de base d'un bot
-  - Méthodes à implémenter
-  - Commentaires explicatifs
+- `examples/template_bot.js` - Empty template to get started
+  - Basic bot structure
+  - Methods to implement
+  - Explanatory comments
 
-#### Viewer HTML de Base
-- `examples/viewer/index.html` - Interface utilisateur moderne
-  - Layout responsive
-  - Panneaux configurables
-  - Console de logs intégrée
+#### Basic HTML Viewer
+- `examples/viewer/index.html` - Modern user interface
+  - Responsive layout
+  - Configurable panels
+  - Integrated log console
   
-- `examples/viewer/viewer.js` - Client WebSocket complet
-  - Connexion au serveur
-  - Rendu Canvas 2D
-  - Gestion de caméra (zoom, déplacement)
-  - Sélection d'unités
-  - Mise à jour temps réel
+- `examples/viewer/viewer.js` - Complete WebSocket client
+  - Server connection
+  - 2D Canvas rendering
+  - Camera management (zoom, movement)
+  - Unit selection
+  - Real-time updates
   
-- `examples/viewer/style.css` - Styles modernes
+- `examples/viewer/style.css` - Modern styles
   - Dark theme
   - Responsive design
-  - Animations subtiles
+  - Subtle animations
   
-- `examples/viewer/README.md` - Documentation du viewer
-  - Guide d'utilisation
-  - Personnalisation
-  - Protocol WebSocket
-  - Création de viewers alternatifs
+- `examples/viewer/README.md` - Viewer documentation
+  - Usage guide
+  - Customization
+  - WebSocket protocol
+  - Creating alternative viewers
 
-#### Documentation Complète
-- `examples/API_REFERENCE.md` - Documentation API JavaScript
+#### Complete Documentation
+- `examples/API_REFERENCE.md` - JavaScript API documentation
   - GameState API
   - Unit API
-  - Exemples d'utilisation
-  - Bonnes pratiques
+  - Usage examples
+  - Best practices
   
-- `PROJECT_SUMMARY.md` - Résumé complet du projet
-  - Vue d'ensemble
+- `PROJECT_SUMMARY.md` - Complete project summary
+  - Overview
   - Architecture
   - Technologies
   - Roadmap
   
-- `STRUCTURE.md` - Structure détaillée
-  - Arborescence complète
-  - Changements effectués
-  - Flux de travail
+- `STRUCTURE.md` - Detailed structure
+  - Complete file tree
+  - Changes made
+  - Workflow
   
-- `QUICKSTART.md` - Guide de démarrage rapide
+- `QUICKSTART.md` - Quick start guide
   - Installation
-  - Construction
-  - Premiers pas
-  - Commandes utiles
+  - Building
+  - First steps
+  - Useful commands
 
-### Modifié 🔧
+### Modified 🔧
 
-- `README.md` - Refonte complète
-  - Description headless
-  - Nouvelles caractéristiques
-  - Structure mise à jour
-  - Exemples JavaScript
+- `README.md` - Complete overhaul
+  - Headless description
+  - New features
+  - Updated structure
+  - JavaScript examples
   
-- `BUILD.md` - Mise à jour
-  - Section "Next Steps" améliorée
-  - Références au viewer
-  - Guide viewer personnalisé
+- `BUILD.md` - Update
+  - Improved "Next Steps" section
+  - Viewer references
+  - Custom viewer guide
   
-- `src/lib.rs` - Suppression du module graphics
-  - Architecture headless
-  - Modules mis à jour
+- `src/lib.rs` - Removed graphics module
+  - Headless architecture
+  - Updated modules
 
-### Supprimé ❌
+### Removed ❌
 
-#### Modules Graphiques (Architecture Headless)
-- `src/graphics/` - Module de rendu intégré
+#### Graphics Modules (Headless Architecture)
+- `src/graphics/` - Integrated rendering module
   - `src/graphics/mod.rs`
   - `src/graphics/renderer.rs`
   - `src/graphics/ui.rs`
   
-- `assets/shaders/` - Shaders graphiques
+- `assets/shaders/` - Graphics shaders
   
-- `examples/basic_bot.rs` - Exemple Rust (remplacé par JavaScript)
+- `examples/basic_bot.rs` - Rust example (replaced by JavaScript)
 
-**Raison :** Le moteur est maintenant headless. Les joueurs créent leurs propres clients de visualisation.
+**Reason:** The engine is now headless. Players create their own visualization clients.
 
-### Philosophie du Projet
+### Project Philosophy
 
-#### Liberté Totale de Visualisation
-Les joueurs peuvent créer leur propre interface avec :
-- Technologies web (React, Vue, Canvas, Three.js)
-- Moteurs de jeu (Unity, Godot)
-- Applications desktop (Electron, Tauri)
-- Interfaces terminal (ASCII art)
-- N'importe quelle technologie supportant WebSocket
+#### Total Visualization Freedom
+Players can create their own interface with:
+- Web technologies (React, Vue, Canvas, Three.js)
+- Game engines (Unity, Godot)
+- Desktop applications (Electron, Tauri)
+- Terminal interfaces (ASCII art)
+- Any technology supporting WebSocket
 
-#### Open Source et Éducatif
-- Enseigner la programmation
-- Promouvoir Rust et JavaScript
-- Créer une communauté
-- Partager les connaissances
+#### Open Source and Educational
+- Teach programming
+- Promote Rust and JavaScript
+- Build a community
+- Share knowledge
 
 ### Roadmap
 
-#### Phase 1 : Fondations ✅ (Actuelle)
-- [x] Structure du projet
-- [x] Documentation complète
-- [x] Exemples de bots JavaScript
-- [x] Viewer HTML de base
-- [x] Architecture headless
+#### Phase 1: Foundations ✅ (Current)
+- [x] Project structure
+- [x] Complete documentation
+- [x] JavaScript bot examples
+- [x] Basic HTML viewer
+- [x] Headless architecture
 
-#### Phase 2 : Moteur de Base 🚧 (À venir)
-- [ ] Simulation du monde
-- [ ] Système d'entités
-- [ ] Gestion des ressources
-- [ ] Système de déplacement
+#### Phase 2: Base Engine 🚧 (Coming)
+- [ ] World simulation
+- [ ] Entity system
+- [ ] Resource management
+- [ ] Movement system
 
-#### Phase 3 : Scripting ⏳
-- [ ] Sandbox JavaScript (Boa/Deno)
-- [ ] API de scripting complète
-- [ ] Système d'événements
-- [ ] Limitations de sécurité
+#### Phase 3: Scripting ⏳
+- [ ] JavaScript sandbox (Boa/Deno)
+- [ ] Complete scripting API
+- [ ] Event system
+- [ ] Security limitations
 
-#### Phase 4 : Réseau ⏳
-- [ ] Serveur WebSocket
+#### Phase 4: Networking ⏳
+- [ ] WebSocket server
 - [ ] REST API
-- [ ] Authentification
-- [ ] Multi-joueurs
+- [ ] Authentication
+- [ ] Multiplayer
 
-#### Phase 5 : Gameplay 📅
-- [ ] Système de combat
-- [ ] Construction de bâtiments
+#### Phase 5: Gameplay 📅
+- [ ] Combat system
+- [ ] Building construction
 - [ ] Tech tree
 - [ ] Fog of war
 
-#### Phase 6 : Avancé 📅
-- [ ] Système de replays
-- [ ] Classements
-- [ ] Tournois
-- [ ] IA de référence
+#### Phase 6: Advanced 📅
+- [ ] Replay system
+- [ ] Leaderboards
+- [ ] Tournaments
+- [ ] Reference AI
 
-### Technologies Utilisées
+### Technologies Used
 
 #### Backend
-- **Rust** 1.70+ - Langage principal
-- **Tokio** - Runtime async (prévu)
-- **Warp/Actix** - Web framework (à décider)
-- **Boa/Deno** - Moteur JavaScript (à décider)
-- **Serde** - Sérialisation JSON (prévu)
+- **Rust** 1.70+ - Main language
+- **Tokio** - Async runtime (planned)
+- **Warp/Actix** - Web framework (to be decided)
+- **Boa/Deno** - JavaScript engine (to be decided)
+- **Serde** - JSON serialization (planned)
 
-#### Frontend (Exemples)
-- **HTML5/CSS3/JavaScript** - Viewer de base
-- **Canvas API** - Rendu 2D
-- **WebSocket API** - Communication temps réel
+#### Frontend (Examples)
+- **HTML5/CSS3/JavaScript** - Basic viewer
+- **Canvas API** - 2D rendering
+- **WebSocket API** - Real-time communication
 
-### Fichiers du Projet
+### Project Files
 
 #### Documentation
-- `README.md` - Documentation principale
-- `BUILD.md` - Guide de construction
-- `PROJECT_SUMMARY.md` - Résumé complet
-- `STRUCTURE.md` - Structure détaillée
-- `QUICKSTART.md` - Démarrage rapide
-- `CHANGELOG.md` - Ce fichier
-- `LICENSE` - Licence MIT
+- `README.md` - Main documentation
+- `BUILD.md` - Build guide
+- `PROJECT_SUMMARY.md` - Complete summary
+- `STRUCTURE.md` - Detailed structure
+- `QUICKSTART.md` - Quick start
+- `CHANGELOG.md` - This file
+- `LICENSE` - MIT License
 
-#### Code Source (Rust)
-- `src/main.rs` - Point d'entrée
-- `src/lib.rs` - Bibliothèque
-- `src/game/*` - Moteur de jeu
-- `src/api/*` - API de scripting
-- `src/network/*` - Serveur réseau
-- `src/scripting/*` - Sandbox JavaScript
+#### Source Code (Rust)
+- `src/main.rs` - Entry point
+- `src/lib.rs` - Library
+- `src/game/*` - Game engine
+- `src/api/*` - Scripting API
+- `src/network/*` - Network server
+- `src/scripting/*` - JavaScript sandbox
 
-#### Exemples (JavaScript)
-- `examples/basic_bot.js` - Bot simple
-- `examples/advanced_bot.js` - Bot avancé
+#### Examples (JavaScript)
+- `examples/basic_bot.js` - Simple bot
+- `examples/advanced_bot.js` - Advanced bot
 - `examples/template_bot.js` - Template
-- `examples/API_REFERENCE.md` - Doc API
+- `examples/API_REFERENCE.md` - API docs
 
 #### Viewer (HTML/CSS/JS)
 - `examples/viewer/index.html` - UI
-- `examples/viewer/viewer.js` - Logique
+- `examples/viewer/viewer.js` - Logic
 - `examples/viewer/style.css` - Styles
-- `examples/viewer/README.md` - Doc
+- `examples/viewer/README.md` - Docs
 
 #### Tests
-- `tests/integration_tests.rs` - Tests d'intégration
+- `tests/integration_tests.rs` - Integration tests
 
 #### Configuration
-- `Cargo.toml` - Configuration Cargo
-- `.gitignore` - Fichiers ignorés par Git
+- `Cargo.toml` - Cargo configuration
+- `.gitignore` - Files ignored by Git
 
 ### Contribution
 
-Les contributions sont bienvenues dans ces domaines :
-- 🎮 Implémentation du moteur de simulation
-- �� Sandbox JavaScript sécurisé
-- 🌐 Serveur WebSocket/REST
-- 📚 Documentation et tutoriels
-- 🎨 Viewers alternatifs (React, Unity, etc.)
-- 🧪 Tests unitaires et d'intégration
+Contributions are welcome in these areas:
+- 🎮 Simulation engine implementation
+- 🔒 Secure JavaScript sandbox
+- 🌐 WebSocket/REST server
+- 📚 Documentation and tutorials
+- 🎨 Alternative viewers (React, Unity, etc.)
+- 🧪 Unit and integration tests
 
-### Licence
+### License
 
-MIT License - Voir fichier `LICENSE`
+MIT License - See `LICENSE` file
 
 ### Contact
 
-- **Repository** : https://github.com/xelfe/GeekCraft
-- **Issues** : https://github.com/xelfe/GeekCraft/issues
-- **Discussions** : https://github.com/xelfe/GeekCraft/discussions
+- **Repository**: https://github.com/xelfe/GeekCraft
+- **Issues**: https://github.com/xelfe/GeekCraft/issues
+- **Discussions**: https://github.com/xelfe/GeekCraft/discussions
 
 ---
 
-**GeekCraft** - Votre jeu, votre code, votre vision ! 🎮🚀
+**GeekCraft** - Your game, your code, your vision! 🎮🚀
 
-*Format inspiré de [Keep a Changelog](https://keepachangelog.com/)*
+*Format inspired by [Keep a Changelog](https://keepachangelog.com/)*

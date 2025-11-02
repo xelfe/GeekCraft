@@ -10,6 +10,16 @@ GeekCraft is a programming game inspired by **Screeps** and **Starcraft**, where
 
 **The game engine is headless by design** - it provides no integrated graphical interface. Players are **free to create their own visualization** using any technology they choose (web, desktop, terminal, etc.). A **basic HTML viewer** is provided as an example and starting point.
 
+## Design Principles
+
+GeekCraft follows these core principles:
+
+- **Server in Rust**: The game server is implemented in Rust for performance, safety, and reliability.
+- **Player Freedom**: Players can use any scripting language via the API/server to control their bots, with JavaScript as the primary supported language.
+- **English First**: All documentation, code comments, and examples are in English for accessibility.
+- **Working Examples**: A functional JavaScript example is provided to help players get started, with room for supporting other languages in the future.
+- **Simple Viewer**: The included HTML viewer is intentionally simple because players are encouraged to build their own custom UI using any technology they prefer.
+
 ## Project Structure
 ```
 GeekCraft
@@ -71,7 +81,7 @@ GeekCraft
 1. **Clone the repository**
    ```bash
    git clone https://github.com/xelfe/GeekCraft.git
-   cd GeekCraft/GeekCraft
+   cd GeekCraft
    ```
 
 2. **Build the project**
