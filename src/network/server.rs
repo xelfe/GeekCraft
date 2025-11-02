@@ -155,11 +155,12 @@ async fn list_players_handler(State(state): State<AppState>) -> impl IntoRespons
 
 /// Handler to get current game state
 async fn game_state_handler(State(state): State<AppState>) -> impl IntoResponse {
+    let world = state.game_world.read().await;
     let engine = state.script_engine.read().await;
     let players = engine.list_players();
     
     Json(GameStateResponse {
-        tick: 0, // TODO: Get actual tick from game world
+        tick: world.get_tick(),
         players,
     })
 }
@@ -231,11 +232,12 @@ async fn handle_websocket_command(command: serde_json::Value, state: &AppState) 
             })
         }
         "getGameState" => {
+            let world = state.game_world.read().await;
             let engine = state.script_engine.read().await;
             let players = engine.list_players();
             serde_json::json!({
                 "type": "gameStateResponse",
-                "tick": 0,
+                "tick": world.get_tick(),
                 "players": players
             })
         }
