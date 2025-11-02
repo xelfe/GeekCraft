@@ -78,6 +78,9 @@ pub async fn start_server(game_world: Arc<RwLock<World>>, script_engine: Arc<RwL
         // Add state
         .with_state(app_state)
         // Add CORS middleware
+        // NOTE: CORS is configured to allow all origins for development.
+        // For production deployment, restrict allowed origins to your specific domains:
+        // .layer(CorsLayer::new().allow_origin("https://yourdomain.com".parse::<HeaderValue>().unwrap()))
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
@@ -137,12 +140,20 @@ async fn submit_code_handler(
     log::info!("Received code submission from player: {}", payload.player_id);
     
     let mut engine = state.script_engine.write().await;
-    engine.submit_code(payload.player_id.clone(), payload.code);
     
-    Json(CodeSubmissionResponse {
-        success: true,
-        message: format!("Code submitted successfully for player {}", payload.player_id),
-    })
+    match engine.submit_code(payload.player_id.clone(), payload.code) {
+        Ok(()) => Json(CodeSubmissionResponse {
+            success: true,
+            message: format!("Code submitted successfully for player {}", payload.player_id),
+        }),
+        Err(err) => {
+            log::warn!("Code submission failed: {}", err);
+            Json(CodeSubmissionResponse {
+                success: false,
+                message: err,
+            })
+        }
+    }
 }
 
 /// Handler to list all players

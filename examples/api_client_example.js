@@ -276,7 +276,7 @@ if (typeof module !== 'undefined' && module.exports) {
     };
 }
 
-// Run main if executed directly
-if (require.main === module) {
+// Run main if executed directly (Node.js only)
+if (typeof require !== 'undefined' && typeof module !== 'undefined' && require.main === module) {
     main();
 }

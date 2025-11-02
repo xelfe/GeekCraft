@@ -30,8 +30,20 @@ impl Sandbox {
     }
 
     // Method to submit player code
-    pub fn submit_code(&mut self, player_id: String, code: String) {
+    pub fn submit_code(&mut self, player_id: String, code: String) -> Result<(), String> {
+        // Validate input
+        const MAX_CODE_LENGTH: usize = 1_000_000; // 1MB limit
+        
+        if code.len() > MAX_CODE_LENGTH {
+            return Err(format!("Code too large: {} bytes (max: {} bytes)", code.len(), MAX_CODE_LENGTH));
+        }
+        
+        if player_id.trim().is_empty() {
+            return Err("Player ID cannot be empty".to_string());
+        }
+        
         self.codes.insert(player_id, code);
+        Ok(())
     }
 
     // Method to get player code
