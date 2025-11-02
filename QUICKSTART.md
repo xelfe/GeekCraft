@@ -92,15 +92,17 @@ cp examples/template_bot.js my_bot.js
 nano my_bot.js  # or your favorite editor
 
 # 3. Submit your bot via HTTP API
+# Simple example with inline code:
 curl -X POST http://localhost:3030/api/submit \
   -H "Content-Type: application/json" \
-  -d '{
-    "player_id": "myplayer",
-    "code": "'"$(cat my_bot.js | sed 's/"/\\"/g' | tr -d '\n')"'"
-  }'
+  -d '{"player_id":"myplayer","code":"class MyBot{onTick(){console.log(\"Hello!\");}}module.exports=MyBot;"}'
 
 # Expected response:
 # {"success":true,"message":"Code submitted successfully for player myplayer"}
+
+# Or, to submit a file (create bot.json first):
+# echo '{"player_id":"myplayer","code":"class MyBot{onTick(){console.log(\"Hello!\");}}module.exports=MyBot;"}' > bot.json
+# curl -X POST http://localhost:3030/api/submit -H "Content-Type: application/json" -d @bot.json
 ```
 
 ### Test Your Bot Submission
