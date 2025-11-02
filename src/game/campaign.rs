@@ -8,6 +8,30 @@ use tokio::sync::RwLock;
 use crate::game::world::World;
 use crate::scripting::sandbox::ScriptEngine;
 
+/// Validate run_id to prevent path traversal attacks
+fn validate_run_id(run_id: &str) -> Result<(), String> {
+    if run_id.is_empty() {
+        return Err("Run ID cannot be empty".to_string());
+    }
+    
+    // Check for path separators and other potentially dangerous characters
+    if run_id.contains('/') || run_id.contains('\\') || run_id.contains("..") {
+        return Err("Run ID contains invalid characters (path separators or '..')".to_string());
+    }
+    
+    // Ensure it's a reasonable length
+    if run_id.len() > 255 {
+        return Err("Run ID is too long (max 255 characters)".to_string());
+    }
+    
+    // Only allow alphanumeric, underscore, hyphen, and dot
+    if !run_id.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.') {
+        return Err("Run ID can only contain alphanumeric characters, underscore, hyphen, and dot".to_string());
+    }
+    
+    Ok(())
+}
+
 /// Represents a single campaign run instance
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CampaignRun {
@@ -106,6 +130,8 @@ impl CampaignManager {
     }
 
     pub fn start_run(&mut self, run_id: String) -> Result<CampaignRun, String> {
+        validate_run_id(&run_id)?;
+        
         if self.store.get_run(&run_id).is_some() {
             return Err(format!("Run {} already exists", run_id));
         }
@@ -146,6 +172,8 @@ impl CampaignManager {
     }
 
     pub fn save_run(&self, run_id: &str) -> Result<(), String> {
+        validate_run_id(run_id)?;
+        
         let run = self.store.get_run(run_id)
             .ok_or_else(|| format!("Run {} not found", run_id))?;
 
@@ -162,6 +190,8 @@ impl CampaignManager {
     }
 
     pub fn load_run(&mut self, run_id: &str) -> Result<CampaignRun, String> {
+        validate_run_id(run_id)?;
+        
         let file_path = self.save_dir.join(format!("{}.json", run_id));
         
         if !file_path.exists() {
