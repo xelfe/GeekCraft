@@ -4,8 +4,10 @@
  * This viewer connects to the GeekCraft server via WebSocket
  * and displays the game state in real-time on an HTML5 canvas.
  * 
- * CURRENT SERVER SUPPORT (v0.2.0):
+ * CURRENT SERVER SUPPORT (v0.2.0+):
+ * - AUTHENTICATION: Token-based authentication required
  * - DYNAMIC: tick (game tick counter) and players (list of player IDs)
+ * - MULTIPLAYER: Multiple authenticated users can connect concurrently
  * - PLACEHOLDER: units, buildings, resources, etc. are not yet implemented
  *   on the server side. UI elements for these features are kept as placeholders
  *   for future development.
@@ -16,6 +18,11 @@ class GeekCraftViewer {
         this.ws = null;
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
+        
+        // Authentication state
+        this.token = null;
+        this.username = null;
+        this.authenticated = false;
         
         // Game state (only tick and players are currently supported by server)
         this.gameState = null;
@@ -46,9 +53,23 @@ class GeekCraftViewer {
     }
 
     setupEventListeners() {
-        // Connection buttons
-        document.getElementById('connect-btn').addEventListener('click', () => this.connect());
-        document.getElementById('disconnect-btn').addEventListener('click', () => this.disconnect());
+        // User menu toggle
+        document.getElementById('user-menu-btn').addEventListener('click', () => this.openUserMenu());
+        document.getElementById('close-menu-btn').addEventListener('click', () => this.closeUserMenu());
+        document.getElementById('user-menu-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'user-menu-modal') {
+                this.closeUserMenu();
+            }
+        });
+        
+        // Authentication buttons (from menu)
+        document.getElementById('login-btn-menu').addEventListener('click', () => this.login());
+        document.getElementById('register-btn-menu').addEventListener('click', () => this.register());
+        document.getElementById('logout-btn-menu').addEventListener('click', () => this.logout());
+        
+        // Connection buttons (from menu)
+        document.getElementById('connect-btn-menu').addEventListener('click', () => this.connect());
+        document.getElementById('disconnect-btn-menu').addEventListener('click', () => this.disconnect());
         
         // Camera controls
         document.getElementById('zoom-in').addEventListener('click', () => this.zoom(1.2));
@@ -75,9 +96,117 @@ class GeekCraftViewer {
             document.getElementById('console-output').innerHTML = '';
         });
     }
+    
+    openUserMenu() {
+        document.getElementById('user-menu-modal').style.display = 'flex';
+    }
+    
+    closeUserMenu() {
+        document.getElementById('user-menu-modal').style.display = 'none';
+    }
 
+    async register() {
+        const username = document.getElementById('username-menu').value.trim();
+        const password = document.getElementById('password-menu').value;
+        const apiUrl = document.getElementById('api-url-menu').value;
+        
+        if (!username || !password) {
+            this.log('Please enter username and password', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${apiUrl}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.log(`✓ Registration successful for ${username}`, 'success');
+                this.log('Please login to continue', 'info');
+            } else {
+                this.log(`Registration failed: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            this.log(`Registration error: ${error.message}`, 'error');
+        }
+    }
+    
+    async login() {
+        const username = document.getElementById('username-menu').value.trim();
+        const password = document.getElementById('password-menu').value;
+        const apiUrl = document.getElementById('api-url-menu').value;
+        
+        if (!username || !password) {
+            this.log('Please enter username and password', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${apiUrl}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.token) {
+                this.token = data.token;
+                this.username = data.username;
+                this.updateAuthStatus(true);
+                this.log(`✓ Logged in as ${this.username}`, 'success');
+                this.log('You can now connect to the game server', 'info');
+            } else {
+                this.log(`Login failed: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            this.log(`Login error: ${error.message}`, 'error');
+        }
+    }
+    
+    async logout() {
+        if (!this.token) {
+            this.log('Not logged in', 'warning');
+            return;
+        }
+        
+        const apiUrl = document.getElementById('api-url-menu').value;
+        
+        try {
+            const response = await fetch(`${apiUrl}/api/auth/logout`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${this.token}` },
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.log('✓ Logged out successfully', 'success');
+            }
+        } catch (error) {
+            this.log(`Logout error: ${error.message}`, 'error');
+        } finally {
+            // Clear auth state regardless
+            this.token = null;
+            this.username = null;
+            this.authenticated = false;
+            this.updateAuthStatus(false);
+            this.disconnect();
+        }
+    }
+    
     connect() {
-        const serverUrl = document.getElementById('server-url').value;
+        if (!this.token) {
+            this.log('Please login first before connecting to the game server', 'error');
+            this.openUserMenu(); // Open menu to prompt login
+            return;
+        }
+        
+        const serverUrl = document.getElementById('server-url-menu').value;
         this.log(`Connecting to ${serverUrl}...`);
         
         try {
@@ -103,13 +232,8 @@ class GeekCraftViewer {
     onConnected() {
         this.connected = true;
         this.updateConnectionStatus(true);
-        this.log('✓ Connected to server', 'success');
-        
-        // Request initial game state
-        this.sendCommand({ type: 'getGameState' });
-        
-        // Start polling for updates
-        this.startPolling();
+        this.log('✓ Connected to WebSocket', 'success');
+        this.log('Waiting for welcome message...', 'info');
     }
 
     onDisconnected() {
@@ -137,8 +261,24 @@ class GeekCraftViewer {
             case 'welcome':
                 // Handle welcome message from server
                 this.log(`Server: ${message.message}`, 'success');
-                // Request initial game state
-                this.sendCommand({ type: 'getGameState' });
+                // Authenticate with token
+                this.log('Authenticating...', 'info');
+                this.sendCommand({ type: 'auth', token: this.token });
+                break;
+            
+            case 'authResponse':
+                // Handle authentication response
+                if (message.success) {
+                    this.authenticated = true;
+                    this.log(`✓ Authenticated as ${message.username}`, 'success');
+                    // Request initial game state
+                    this.sendCommand({ type: 'getGameState' });
+                    // Start polling for updates
+                    this.startPolling();
+                } else {
+                    this.log(`✗ Authentication failed: ${message.message}`, 'error');
+                    this.disconnect();
+                }
                 break;
             
             case 'gameStateResponse':
@@ -279,22 +419,53 @@ class GeekCraftViewer {
         `}).join('');
     }
 
+    updateAuthStatus(loggedIn) {
+        const loginBtn = document.getElementById('login-btn-menu');
+        const registerBtn = document.getElementById('register-btn-menu');
+        const logoutBtn = document.getElementById('logout-btn-menu');
+        const connectBtn = document.getElementById('connect-btn-menu');
+        const usernameField = document.getElementById('username-menu');
+        const passwordField = document.getElementById('password-menu');
+        const authStatus = document.getElementById('auth-status-menu');
+        
+        if (loggedIn) {
+            loginBtn.disabled = true;
+            registerBtn.disabled = true;
+            logoutBtn.disabled = false;
+            connectBtn.disabled = false;
+            usernameField.disabled = true;
+            passwordField.disabled = true;
+            authStatus.textContent = `Logged in as ${this.username}`;
+            authStatus.className = 'auth-status auth-logged-in';
+        } else {
+            loginBtn.disabled = false;
+            registerBtn.disabled = false;
+            logoutBtn.disabled = true;
+            connectBtn.disabled = true;
+            usernameField.disabled = false;
+            passwordField.disabled = false;
+            authStatus.textContent = 'Not logged in';
+            authStatus.className = 'auth-status auth-logged-out';
+        }
+    }
+    
     updateConnectionStatus(connected) {
         const indicator = document.getElementById('status-indicator');
         const text = document.getElementById('status-text');
-        const connectBtn = document.getElementById('connect-btn');
-        const disconnectBtn = document.getElementById('disconnect-btn');
+        const connectBtn = document.getElementById('connect-btn-menu');
+        const disconnectBtn = document.getElementById('disconnect-btn-menu');
         
         if (connected) {
             indicator.className = 'status-connected';
-            text.textContent = 'Connected';
+            text.textContent = this.authenticated ? 'Connected & Authenticated' : 'Connected (authenticating...)';
             connectBtn.disabled = true;
             disconnectBtn.disabled = false;
         } else {
             indicator.className = 'status-disconnected';
             text.textContent = 'Disconnected';
-            connectBtn.disabled = false;
+            connectBtn.disabled = !this.token; // Can only connect if logged in
             disconnectBtn.disabled = true;
+            this.authenticated = false;
         }
     }
 

@@ -10,24 +10,66 @@
     <div class="container">
         <header>
             <h1>🎮 GeekCraft Viewer</h1>
-            <div class="connection-status">
-                <span id="status-indicator" class="status-disconnected"></span>
-                <span id="status-text">Disconnected</span>
+            <div class="header-right">
+                <div class="connection-status">
+                    <span id="status-indicator" class="status-disconnected"></span>
+                    <span id="status-text">Disconnected</span>
+                </div>
+                <button id="user-menu-btn" class="burger-menu-btn" aria-label="User menu">
+                    <span class="burger-icon">☰</span>
+                </button>
             </div>
         </header>
+        
+        <!-- User/Auth Menu Modal -->
+        <div id="user-menu-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content user-menu">
+                <div class="modal-header">
+                    <h2>User & Authentication</h2>
+                    <button id="close-menu-btn" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="auth-status-menu" class="auth-status auth-logged-out">Not logged in</div>
+                    
+                    <div class="menu-section">
+                        <h3>Authentication</h3>
+                        <div class="input-group">
+                            <label for="api-url-menu">API URL:</label>
+                            <input type="text" id="api-url-menu" value="http://localhost:3030" />
+                        </div>
+                        <div class="input-group">
+                            <label for="username-menu">Username:</label>
+                            <input type="text" id="username-menu" placeholder="Enter username" />
+                        </div>
+                        <div class="input-group">
+                            <label for="password-menu">Password:</label>
+                            <input type="password" id="password-menu" placeholder="Enter password" />
+                        </div>
+                        <div class="button-group">
+                            <button id="login-btn-menu" class="btn btn-primary">Login</button>
+                            <button id="register-btn-menu" class="btn btn-secondary">Register</button>
+                        </div>
+                        <button id="logout-btn-menu" class="btn btn-secondary btn-full" disabled>Logout</button>
+                    </div>
+                    
+                    <div class="menu-section">
+                        <h3>WebSocket Connection</h3>
+                        <div class="input-group">
+                            <label for="server-url-menu">Server URL:</label>
+                            <input type="text" id="server-url-menu" value="ws://localhost:3030/ws" />
+                        </div>
+                        <div class="button-group">
+                            <button id="connect-btn-menu" class="btn btn-primary" disabled>Connect</button>
+                            <button id="disconnect-btn-menu" class="btn btn-secondary" disabled>Disconnect</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="main-content">
             <!-- Configuration Panel -->
             <aside class="sidebar">
-                <section class="config-panel">
-                    <h2>Configuration</h2>
-                    <div class="input-group">
-                        <label for="server-url">Server URL:</label>
-                        <input type="text" id="server-url" value="ws://localhost:3030/ws" />
-                    </div>
-                    <button id="connect-btn" class="btn btn-primary">Connect</button>
-                    <button id="disconnect-btn" class="btn btn-secondary" disabled>Disconnect</button>
-                </section>
 
                 <section class="game-info">
                     <h2>Information</h2>

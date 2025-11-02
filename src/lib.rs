@@ -18,6 +18,9 @@ pub mod network;
 /// Scripting module (JavaScript sandbox)
 pub mod scripting;
 
+/// Authentication module (user management, sessions)
+pub mod auth;
+
 /// Game version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

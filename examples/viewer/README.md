@@ -1,10 +1,12 @@
 # GeekCraft Viewer - Visualization Client Example
 
-This HTML viewer is a basic example of a visualization client for GeekCraft. It demonstrates how to connect to the game server and display the game state in real-time.
+This HTML viewer is a basic example of a visualization client for GeekCraft. It demonstrates how to connect to the game server with authentication and display the game state in real-time.
 
-## Current Server Support (v0.2.0)
+## Current Server Support (v0.2.0+)
 
-The server currently provides only basic game data:
+The server now requires authentication and provides:
+- ✅ **AUTHENTICATION**: Token-based authentication (register/login required)
+- ✅ **MULTIPLAYER**: Multiple authenticated users can connect concurrently
 - ✅ **DYNAMIC**: Game tick counter (updated in real-time)
 - ✅ **DYNAMIC**: List of player IDs (strings)
 - 🚧 **PLACEHOLDER**: Units, buildings, resources, and detailed player stats are not yet implemented on the server
@@ -13,7 +15,8 @@ The viewer displays real-time data for supported features and shows "N/A" for fe
 
 ## Features
 
-- ✅ WebSocket connection to the server
+- ✅ **Authentication** (register, login, logout)
+- ✅ WebSocket connection with authentication
 - ✅ Real-time display of tick and player count
 - ✅ HTML5 canvas for rendering
 - ✅ Responsive user interface
@@ -31,7 +34,9 @@ cd GeekCraft
 cargo run --release
 ```
 
-The server starts by default on `ws://localhost:3030/ws`
+The server starts by default on:
+- HTTP API: `http://localhost:3030`
+- WebSocket: `ws://localhost:3030/ws`
 
 ### 2. Open the Viewer
 
@@ -45,13 +50,39 @@ python3 -m http.server 8000
 # Then open http://localhost:8000
 ```
 
-### 3. Connect
+### 3. Authenticate
 
-1. Verify that the server URL is correct (default: `ws://localhost:3030/ws`)
-2. Click the "Connect" button
-3. The viewer will display the game state in real-time
+**First time users:**
+1. Enter a username (3-32 characters, alphanumeric + underscore/hyphen)
+2. Enter a password (minimum 6 characters)
+3. Click "Register" to create your account
+4. Click "Login" to authenticate and receive a token
+
+**Returning users:**
+1. Enter your username and password
+2. Click "Login"
+3. Wait for confirmation in the console
+
+### 4. Connect to Game Server
+
+1. After logging in, the "Connect" button will be enabled
+2. Verify the WebSocket URL (default: `ws://localhost:3030/ws`)
+3. Click "Connect"
+4. The viewer will authenticate your WebSocket connection with your token
+5. Once authenticated, you'll see real-time game state updates
+
+## Workflow
+
+```
+1. Register (first time) → 2. Login → 3. Connect WebSocket → 4. Auto-authenticate → 5. See game state
+```
 
 ## Controls
+
+### Authentication
+- **Register:** Create a new account
+- **Login:** Authenticate and receive token
+- **Logout:** Clear authentication and disconnect
 
 ### Camera
 - **Zoom +/- :** Buttons in the control bar
@@ -91,9 +122,17 @@ Modern styles with:
 
 ## WebSocket Protocol
 
-The viewer communicates with the server via WebSocket in JSON.
+The viewer communicates with the server via WebSocket in JSON. **Authentication is now required.**
 
-### Current Implementation (v0.2.0)
+### Current Implementation (v0.2.0+)
+
+#### Connection Flow
+
+1. **Connect** to WebSocket `ws://localhost:3030/ws`
+2. **Receive** welcome message from server
+3. **Send** authentication command with your token
+4. **Receive** authentication response
+5. **Send/Receive** game commands (if authenticated)
 
 #### Incoming Messages (server → client)
 
@@ -101,12 +140,28 @@ The viewer communicates with the server via WebSocket in JSON.
 ```javascript
 {
     "type": "welcome",
-    "message": "Connected to GeekCraft server",
-    "version": "0.2.0"
+    "message": "Connected to GeekCraft server. Send auth command to authenticate.",
+    "version": "0.2.0",
+    "requiresAuth": true
 }
 ```
 
-**Game state response (DYNAMIC - currently supported):**
+**Authentication response:**
+```javascript
+{
+    "type": "authResponse",
+    "success": true,
+    "username": "player1"
+}
+// or
+{
+    "type": "authResponse",
+    "success": false,
+    "message": "Invalid or expired token"
+}
+```
+
+**Game state response (DYNAMIC - requires authentication):**
 ```javascript
 {
     "type": "gameStateResponse",
@@ -115,7 +170,7 @@ The viewer communicates with the server via WebSocket in JSON.
 }
 ```
 
-**Players list response (DYNAMIC - currently supported):**
+**Players list response (DYNAMIC - requires authentication):**
 ```javascript
 {
     "type": "playersResponse",
@@ -127,20 +182,28 @@ The viewer communicates with the server via WebSocket in JSON.
 ```javascript
 {
     "type": "error",
-    "message": "Error description"
+    "message": "Authentication required. Send auth command first."
 }
 ```
 
 #### Outgoing Messages (client → server)
 
-**Request game state:**
+**Authenticate WebSocket connection:**
+```javascript
+{
+    "type": "auth",
+    "token": "your-token-from-login"
+}
+```
+
+**Request game state (requires authentication):**
 ```javascript
 {
     "type": "getGameState"
 }
 ```
 
-**Request players list:**
+**Request players list (requires authentication):**
 ```javascript
 {
     "type": "getPlayers"
@@ -263,15 +326,29 @@ ws.onopen = () => {
 
 ## Troubleshooting
 
-### The Viewer Won't Connect
+### Cannot Login
 - Check that the GeekCraft server is running (`cargo run --release`)
+- Verify the API URL is correct (default: `http://localhost:3030`)
+- Check browser console (F12) for error messages
+- Ensure username is 3-32 characters (alphanumeric, underscore, hyphen only)
+- Ensure password is at least 6 characters
+
+### The Viewer Won't Connect
+- Make sure you are logged in first (green status indicator)
+- Check that the GeekCraft server is running
 - Check the WebSocket URL in the interface (default: `ws://localhost:3030/ws`)
-- Look at the browser console (F12) for errors
+- Look at the console output for authentication errors
+
+### Authentication Fails on WebSocket
+- Your token may have expired (24-hour validity)
+- Logout and login again to get a fresh token
+- Check the console for specific error messages
 
 ### Nothing Displays on the Canvas
 - The canvas currently shows only a grid as units, buildings, and resources are not yet implemented on the server
 - Check that you are receiving data in the console (bottom panel)
 - Verify that the "Tick" and "Players" fields in the left sidebar are updating
+- Make sure you see "Connected & Authenticated" in the connection status
 
 ### Players Show "N/A" for Stats
 - This is expected behavior - the server currently only provides player IDs
