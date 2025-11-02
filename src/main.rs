@@ -15,21 +15,20 @@ async fn main() -> anyhow::Result<()> {
     info!("🎮 Starting GeekCraft v{}", env!("CARGO_PKG_VERSION"));
     
     // Choose database backend based on environment variable
-    // Options: INMEMORY (default), REDIS
+    // Options: INMEMORY (default), MONGODB
     let db_backend = std::env::var("GEEKCRAFT_DB_BACKEND")
         .unwrap_or_else(|_| "INMEMORY".to_string());
     
     let backend = match db_backend.to_uppercase().as_str() {
-        #[cfg(feature = "redis_backend")]
-        "REDIS" => {
-            let redis_url = std::env::var("REDIS_URL")
-                .unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
-            info!("🔴 Using Redis database at {}", redis_url);
-            auth::DatabaseBackend::Redis(redis_url)
+        "MONGODB" => {
+            let mongodb_url = std::env::var("MONGODB_URL")
+                .unwrap_or_else(|_| "mongodb://localhost:27017/geekcraft".to_string());
+            info!("🍃 Using MongoDB database at {}", mongodb_url);
+            auth::DatabaseBackend::MongoDB(mongodb_url)
         }
         _ => {
             info!("📦 Using In-Memory database (data will be lost on restart)");
-            info!("💡 For production, use Redis: cargo build --features redis_backend");
+            info!("💡 For production, use MongoDB: export GEEKCRAFT_DB_BACKEND=MONGODB");
             auth::DatabaseBackend::InMemory
         }
     };
