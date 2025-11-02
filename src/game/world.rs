@@ -16,6 +16,7 @@ pub struct World {
     width: u32,
     height: u32,
     terrains: Vec<Terrain>,
+    tick: u64,
 }
 
 impl World {
@@ -24,7 +25,12 @@ impl World {
             width: 100,
             height: 100,
             terrains: Vec::new(),
+            tick: 0,
         }
+    }
+
+    pub fn get_tick(&self) -> u64 {
+        self.tick
     }
 
     fn add_terrain(&mut self, terrain: Terrain) {
