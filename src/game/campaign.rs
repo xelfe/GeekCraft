@@ -102,9 +102,11 @@ impl CampaignManager {
             return Err(format!("Run {} already exists", run_id));
         }
 
-        let mut run = self.store.create_run(run_id);
+        self.store.create_run(run_id.clone());
+        let run = self.store.get_run_mut(&run_id)
+            .ok_or_else(|| "Failed to retrieve created run".to_string())?;
         run.start();
-        Ok(run)
+        Ok(run.clone())
     }
 
     pub fn get_run_state(&self, run_id: &str) -> Option<CampaignRun> {
