@@ -3,6 +3,12 @@
  * 
  * This viewer connects to the GeekCraft server via WebSocket
  * and displays the game state in real-time on an HTML5 canvas.
+ * 
+ * CURRENT SERVER SUPPORT (v0.2.0):
+ * - DYNAMIC: tick (game tick counter) and players (list of player IDs)
+ * - PLACEHOLDER: units, buildings, resources, etc. are not yet implemented
+ *   on the server side. UI elements for these features are kept as placeholders
+ *   for future development.
  */
 
 class GeekCraftViewer {
@@ -10,7 +16,11 @@ class GeekCraftViewer {
         this.ws = null;
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
+        
+        // Game state (only tick and players are currently supported by server)
         this.gameState = null;
+        
+        // Placeholder state for future features (not yet implemented on server)
         this.selectedUnit = null;
         
         // View parameters
@@ -117,16 +127,17 @@ class GeekCraftViewer {
     handleMessage(message) {
         switch (message.type) {
             case 'welcome':
-                // Handle welcome message from new server
+                // Handle welcome message from server
                 this.log(`Server: ${message.message}`, 'success');
                 // Request initial game state
                 this.sendCommand({ type: 'getGameState' });
                 break;
             
             case 'gameStateResponse':
-                // Handle game state response from new server
+                // DYNAMIC: Handle game state response from server
+                // Server currently provides: tick and players (array of player ID strings)
                 if (!this.gameState) {
-                    this.gameState = { tick: 0, players: [], units: [] };
+                    this.gameState = { tick: 0, players: [] };
                 }
                 this.gameState.tick = message.tick || 0;
                 this.gameState.players = message.players || [];
@@ -134,26 +145,28 @@ class GeekCraftViewer {
                 break;
             
             case 'playersResponse':
-                // Handle players list response
+                // DYNAMIC: Handle players list response
                 if (!this.gameState) {
-                    this.gameState = { tick: 0, players: [], units: [] };
+                    this.gameState = { tick: 0, players: [] };
                 }
                 this.gameState.players = message.players || [];
                 this.updateUI();
                 break;
             
             case 'gameState':
+                // Legacy/future message type (placeholder)
                 this.gameState = message.data;
                 this.updateUI();
                 break;
             
             case 'gameUpdate':
-                // Incremental update
+                // PLACEHOLDER: Incremental update (not yet implemented on server)
                 this.applyUpdate(message.data);
                 this.updateUI();
                 break;
             
             case 'event':
+                // PLACEHOLDER: Game events (not yet implemented on server)
                 this.handleGameEvent(message.data);
                 break;
             
@@ -167,6 +180,8 @@ class GeekCraftViewer {
     }
 
     applyUpdate(update) {
+        // PLACEHOLDER: This function is for future incremental updates
+        // Currently not used as the server does not send incremental updates
         if (!this.gameState) {
             this.gameState = update;
             return;
@@ -177,18 +192,17 @@ class GeekCraftViewer {
             this.gameState.tick = update.tick;
         }
         
-        // Update units
-        if (update.units) {
-            this.gameState.units = update.units;
-        }
-        
-        // Update players
+        // Update players (only supported field currently)
         if (update.players) {
             this.gameState.players = update.players;
         }
+        
+        // PLACEHOLDER: Units, buildings, resources (not yet implemented)
+        // These will be handled when server support is added
     }
 
     handleGameEvent(event) {
+        // PLACEHOLDER: Game events are not yet implemented on the server
         this.log(`Event: ${event.type} - ${JSON.stringify(event.data)}`, 'info');
     }
 
@@ -201,10 +215,14 @@ class GeekCraftViewer {
     updateUI() {
         if (!this.gameState) return;
         
-        // Update information
+        // DYNAMIC: Update tick (from server)
         document.getElementById('game-tick').textContent = this.gameState.tick || 0;
+        
+        // DYNAMIC: Update player count (from server)
         document.getElementById('player-count').textContent = this.gameState.players?.length || 0;
-        document.getElementById('unit-count').textContent = this.gameState.units?.length || 0;
+        
+        // PLACEHOLDER: Unit count not yet implemented on server
+        document.getElementById('unit-count').textContent = 'N/A';
         
         // Update players list
         this.updatePlayersList();
@@ -217,15 +235,22 @@ class GeekCraftViewer {
             return;
         }
         
-        playersList.innerHTML = this.gameState.players.map(player => `
-            <div class="player-item" style="border-left: 3px solid ${player.color}">
-                <div class="player-name">${player.name}</div>
+        // DYNAMIC: Display player IDs from server
+        // PLACEHOLDER: Resources and unit counts are not yet implemented
+        playersList.innerHTML = this.gameState.players.map((playerId, index) => {
+            // Generate a simple color based on player index using golden angle
+            const hue = (index * 137.507764) % 360; // Golden angle for better color distribution
+            const color = `hsl(${hue}, 70%, 60%)`;
+            
+            return `
+            <div class="player-item" style="border-left: 3px solid ${color}">
+                <div class="player-name">${playerId}</div>
                 <div class="player-stats">
-                    <span>⚡ ${player.resources?.minerals || 0}</span>
-                    <span>👥 ${player.unitCount || 0}</span>
+                    <span>⚡ N/A</span>
+                    <span>👥 N/A</span>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     updateConnectionStatus(connected) {
@@ -274,14 +299,12 @@ class GeekCraftViewer {
         // Draw grid
         this.renderGrid();
         
-        // Draw resources
-        this.renderResources();
-        
-        // Draw units
-        this.renderUnits();
-        
-        // Draw buildings
-        this.renderBuildings();
+        // PLACEHOLDER: Resources, units, and buildings are not yet implemented
+        // The rendering functions are kept for future development
+        // Uncomment these when server support is added:
+        // this.renderResources();
+        // this.renderUnits();
+        // this.renderBuildings();
         
         this.ctx.restore();
         
@@ -293,10 +316,12 @@ class GeekCraftViewer {
         this.ctx.fillStyle = '#666';
         this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Waiting for data...', this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.fillText('Waiting for server data...', this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.fillText('(Connect to see tick and player information)', this.canvas.width / 2, this.canvas.height / 2 + 30);
     }
 
     renderGrid() {
+        // Draw a simple grid as a placeholder background
         const gridSize = 50;
         this.ctx.strokeStyle = '#333';
         this.ctx.lineWidth = 1;
@@ -316,7 +341,12 @@ class GeekCraftViewer {
         }
     }
 
+    // PLACEHOLDER RENDERING FUNCTIONS
+    // These functions are kept for future implementation when server support is added
+    // They are not currently called in the render loop
+
     renderResources() {
+        // PLACEHOLDER: Resource rendering (not yet implemented on server)
         if (!this.gameState.resources) return;
         
         this.gameState.resources.forEach(resource => {
@@ -334,6 +364,7 @@ class GeekCraftViewer {
     }
 
     renderUnits() {
+        // PLACEHOLDER: Unit rendering (not yet implemented on server)
         if (!this.gameState.units) return;
         
         this.gameState.units.forEach(unit => {
@@ -364,6 +395,7 @@ class GeekCraftViewer {
     }
 
     renderBuildings() {
+        // PLACEHOLDER: Building rendering (not yet implemented on server)
         if (!this.gameState.buildings) return;
         
         this.gameState.buildings.forEach(building => {
@@ -388,6 +420,8 @@ class GeekCraftViewer {
 
     // Interactions
     handleCanvasClick(event) {
+        // PLACEHOLDER: Unit selection (not yet implemented on server)
+        // Kept for future development when units are supported
         if (!this.gameState || !this.gameState.units) return;
         
         const rect = this.canvas.getBoundingClientRect();
@@ -410,16 +444,18 @@ class GeekCraftViewer {
     }
 
     selectUnit(unit) {
+        // PLACEHOLDER: Unit selection (not yet implemented on server)
         this.selectedUnit = unit;
         this.updateSelectionInfo();
         this.log(`Unit selected: ${unit.id}`, 'info');
     }
 
     updateSelectionInfo() {
+        // PLACEHOLDER: Unit details (not yet implemented on server)
         const infoPanel = document.getElementById('selection-info');
         
         if (!this.selectedUnit) {
-            infoPanel.innerHTML = '<p class="empty-state">Select a unit to see its details</p>';
+            infoPanel.innerHTML = '<p class="empty-state">Unit selection not yet supported by server</p>';
             return;
         }
         
