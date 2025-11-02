@@ -30,14 +30,12 @@ env_logger = "0.11"
 anyhow = "1.0"  # Error handling
 
 # Authentication & Database
-rusqlite = { version = "0.31", features = ["bundled"], optional = true }
 redis = { version = "0.25", features = ["tokio-comp", "connection-manager"], optional = true }
 bcrypt = "0.15"
 uuid = { version = "1.7", features = ["v4", "serde"] }
 
 [features]
-default = ["sqlite"]
-sqlite = ["rusqlite"]
+default = []
 redis_backend = ["redis"]
 
 [dev-dependencies]

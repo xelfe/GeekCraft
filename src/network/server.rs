@@ -320,7 +320,7 @@ async fn game_state_handler(State(state): State<AppState>) -> impl IntoResponse 
     })
 }
 
-/// WebSocket handler
+/// WebSocket handler - now supports authentication
 async fn websocket_handler(
     ws: WebSocketUpgrade,
     State(state): State<AppState>,
@@ -328,17 +328,21 @@ async fn websocket_handler(
     ws.on_upgrade(|socket| handle_websocket(socket, state))
 }
 
-/// Handle WebSocket connection
+/// Handle WebSocket connection with authentication support
 async fn handle_websocket(socket: WebSocket, state: AppState) {
     let (mut sender, mut receiver) = socket.split();
     
     log::info!("WebSocket client connected");
     
+    // Track authenticated session
+    let mut authenticated_session: Option<crate::auth::models::Session> = None;
+    
     // Send welcome message
     let welcome = serde_json::json!({
         "type": "welcome",
-        "message": "Connected to GeekCraft server",
-        "version": env!("CARGO_PKG_VERSION")
+        "message": "Connected to GeekCraft server. Send auth command to authenticate.",
+        "version": env!("CARGO_PKG_VERSION"),
+        "requiresAuth": true
     });
     
     if let Ok(msg) = serde_json::to_string(&welcome) {
@@ -353,7 +357,11 @@ async fn handle_websocket(socket: WebSocket, state: AppState) {
                 
                 // Try to parse as JSON command
                 if let Ok(command) = serde_json::from_str::<serde_json::Value>(&text) {
-                    let response = handle_websocket_command(command, &state).await;
+                    let response = handle_websocket_command(
+                        command,
+                        &state,
+                        &mut authenticated_session
+                    ).await;
                     
                     if let Ok(response_text) = serde_json::to_string(&response) {
                         let _ = sender.send(Message::Text(response_text)).await;
@@ -361,7 +369,11 @@ async fn handle_websocket(socket: WebSocket, state: AppState) {
                 }
             }
             Ok(Message::Close(_)) => {
-                log::info!("WebSocket client disconnected");
+                if let Some(session) = &authenticated_session {
+                    log::info!("WebSocket client {} disconnected", session.username);
+                } else {
+                    log::info!("WebSocket client disconnected");
+                }
                 break;
             }
             Err(e) => {
@@ -373,12 +385,47 @@ async fn handle_websocket(socket: WebSocket, state: AppState) {
     }
 }
 
-/// Handle WebSocket commands
-async fn handle_websocket_command(command: serde_json::Value, state: &AppState) -> serde_json::Value {
+/// Handle WebSocket commands with authentication support
+async fn handle_websocket_command(
+    command: serde_json::Value, 
+    state: &AppState,
+    authenticated_session: &mut Option<crate::auth::models::Session>,
+) -> serde_json::Value {
     let cmd_type = command.get("type").and_then(|v| v.as_str()).unwrap_or("");
     
     match cmd_type {
+        "auth" => {
+            // Authenticate via WebSocket
+            let token = command.get("token").and_then(|v| v.as_str()).unwrap_or("");
+            
+            match state.auth_service.validate_token(token) {
+                Some(session) => {
+                    let username = session.username.clone();
+                    *authenticated_session = Some(session);
+                    serde_json::json!({
+                        "type": "authResponse",
+                        "success": true,
+                        "username": username
+                    })
+                }
+                None => {
+                    serde_json::json!({
+                        "type": "authResponse",
+                        "success": false,
+                        "message": "Invalid or expired token"
+                    })
+                }
+            }
+        }
         "getPlayers" => {
+            // Require authentication
+            if authenticated_session.is_none() {
+                return serde_json::json!({
+                    "type": "error",
+                    "message": "Authentication required. Send auth command first."
+                });
+            }
+            
             let engine = state.script_engine.read().await;
             let players = engine.list_players();
             serde_json::json!({
@@ -387,6 +434,14 @@ async fn handle_websocket_command(command: serde_json::Value, state: &AppState) 
             })
         }
         "getGameState" => {
+            // Require authentication
+            if authenticated_session.is_none() {
+                return serde_json::json!({
+                    "type": "error",
+                    "message": "Authentication required. Send auth command first."
+                });
+            }
+            
             let world = state.game_world.read().await;
             let engine = state.script_engine.read().await;
             let players = engine.list_players();

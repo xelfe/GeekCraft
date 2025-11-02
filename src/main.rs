@@ -15,15 +15,11 @@ async fn main() -> anyhow::Result<()> {
     info!("🎮 Starting GeekCraft v{}", env!("CARGO_PKG_VERSION"));
     
     // Choose database backend based on environment variable
-    // Options: SQLITE (default), INMEMORY, REDIS
+    // Options: INMEMORY (default), REDIS
     let db_backend = std::env::var("GEEKCRAFT_DB_BACKEND")
-        .unwrap_or_else(|_| "SQLITE".to_string());
+        .unwrap_or_else(|_| "INMEMORY".to_string());
     
     let backend = match db_backend.to_uppercase().as_str() {
-        "INMEMORY" => {
-            info!("📦 Using In-Memory database (data will be lost on restart)");
-            auth::DatabaseBackend::InMemory
-        }
         #[cfg(feature = "redis_backend")]
         "REDIS" => {
             let redis_url = std::env::var("REDIS_URL")
@@ -31,16 +27,9 @@ async fn main() -> anyhow::Result<()> {
             info!("🔴 Using Redis database at {}", redis_url);
             auth::DatabaseBackend::Redis(redis_url)
         }
-        #[cfg(feature = "sqlite")]
         _ => {
-            let db_path = std::env::var("SQLITE_PATH")
-                .unwrap_or_else(|_| "geekcraft.db".to_string());
-            info!("💾 Using SQLite database at {}", db_path);
-            auth::DatabaseBackend::SQLite(db_path)
-        }
-        #[cfg(not(feature = "sqlite"))]
-        _ => {
-            info!("📦 Using In-Memory database (SQLite not enabled)");
+            info!("📦 Using In-Memory database (data will be lost on restart)");
+            info!("💡 For production, use Redis: cargo build --features redis_backend");
             auth::DatabaseBackend::InMemory
         }
     };

@@ -4,33 +4,30 @@ GeekCraft supports multiple database backends for authentication and session man
 
 ## Database Options
 
-### 1. **SQLite** (Default - Recommended for Development)
+### 1. **In-Memory** (Default - Development/Testing)
 
 **Best for:**
 - Development and testing
-- Single-server deployments
-- Small to medium-scale games (<1000 concurrent users)
-- Simple setup with no external dependencies
+- Quick experiments
+- Automated testing
 
 **Pros:**
-- ✅ Zero configuration - works out of the box
-- ✅ File-based - easy backup and migration
-- ✅ No external server needed
-- ✅ Perfect for getting started
+- ✅ Fastest option
+- ✅ No dependencies or setup
+- ✅ Zero configuration
+- ✅ Clean slate on every restart
 
 **Cons:**
-- ❌ Limited concurrent writes
-- ❌ Single file - not suitable for horizontal scaling
-- ❌ Not ideal for high-concurrency scenarios
+- ❌ All data lost on restart
+- ❌ Not suitable for production
 
 **Usage:**
 ```bash
-# Default - uses SQLite automatically
+# Default - uses In-Memory automatically
 cargo run --release
 
 # Or explicitly set
-export GEEKCRAFT_DB_BACKEND=SQLITE
-export SQLITE_PATH=geekcraft.db
+export GEEKCRAFT_DB_BACKEND=INMEMORY
 cargo run --release
 ```
 
@@ -50,6 +47,7 @@ cargo run --release
 - ✅ Supports horizontal scaling
 - ✅ Industry standard for real-time multiplayer games
 - ✅ High concurrency support
+- ✅ Data persistence (configurable)
 
 **Cons:**
 - ❌ Requires Redis server installation
@@ -98,63 +96,31 @@ appendonly yes
 
 ---
 
-### 3. **In-Memory** (Testing Only)
-
-**Best for:**
-- Automated testing
-- Quick experiments
-- Development when you don't need data persistence
-
-**Pros:**
-- ✅ Fastest option
-- ✅ No dependencies
-- ✅ Clean slate on every restart
-
-**Cons:**
-- ❌ All data lost on restart
-- ❌ Not suitable for any production use
-
-**Usage:**
-```bash
-export GEEKCRAFT_DB_BACKEND=INMEMORY
-cargo run --release
-```
-
----
-
 ## Comparison Table
 
-| Feature | SQLite | Redis | In-Memory |
-|---------|--------|-------|-----------|
-| **Setup Complexity** | Easy | Medium | Easy |
-| **External Dependencies** | None | Redis server | None |
-| **Concurrent Users** | <1000 | >10,000 | <1000 |
-| **Persistence** | Yes (file) | Yes (configurable) | No |
-| **Speed** | Fast | Very Fast | Fastest |
-| **Horizontal Scaling** | No | Yes | No |
-| **Production Ready (MMO)** | Small-scale | ✅ Yes | ❌ No |
-| **Memory Usage** | Low | High | Medium |
-| **Session Auto-Expiration** | Manual cleanup | Automatic (TTL) | Manual cleanup |
+| Feature | In-Memory | Redis |
+|---------|-----------|-------|
+| **Setup Complexity** | Easy | Medium |
+| **External Dependencies** | None | Redis server |
+| **Concurrent Users** | <1000 | >10,000 |
+| **Persistence** | No | Yes (configurable) |
+| **Speed** | Fastest | Very Fast |
+| **Horizontal Scaling** | No | Yes |
+| **Production Ready (MMO)** | ❌ No | ✅ Yes |
+| **Memory Usage** | Medium | High |
+| **Session Auto-Expiration** | Manual cleanup | Automatic (TTL) |
 
 ---
 
 ## Recommendations by Deployment Type
 
-### Development
+### Development/Testing
 ```bash
-# Use SQLite (default) - simplest option
+# Use In-Memory (default) - simplest option
 cargo run --release
 ```
 
-### Small Public Server (< 100 users)
-```bash
-# SQLite is fine
-export GEEKCRAFT_DB_BACKEND=SQLITE
-export SQLITE_PATH=/var/lib/geekcraft/data.db
-cargo run --release
-```
-
-### Production MMO Server (> 1000 users)
+### Production MMO Server
 ```bash
 # Use Redis for best performance and scaling
 export GEEKCRAFT_DB_BACKEND=REDIS
@@ -176,34 +142,23 @@ cargo run --release --features redis_backend
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GEEKCRAFT_DB_BACKEND` | `SQLITE` | Database backend: `SQLITE`, `REDIS`, or `INMEMORY` |
-| `SQLITE_PATH` | `geekcraft.db` | Path to SQLite database file |
-| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection URL |
+| `GEEKCRAFT_DB_BACKEND` | `INMEMORY` | Database backend: `REDIS` or `INMEMORY` |
+| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection URL (when using Redis) |
 
 ---
 
-## Migration Between Databases
+## Why No SQL Database?
 
-Currently, there's no automatic migration tool between backends. To migrate:
+For an MMO server, we chose to support only NoSQL (Redis) and In-Memory databases because:
 
-### From SQLite to Redis
+1. **Sessions are temporary** - Don't need complex queries or relations
+2. **High concurrency** - Redis handles thousands of concurrent connections better than SQL
+3. **Speed** - In-memory databases are faster for session management
+4. **Simplicity** - Simpler data model (key-value, hash maps)
+5. **Auto-expiration** - Redis TTL automatically removes expired sessions
+6. **Horizontal scaling** - Redis supports clustering and replication
 
-1. Export users and sessions from SQLite (implement export script)
-2. Import into Redis
-3. Switch backend and restart server
-
-For production deployments, plan your database choice before launch. Redis is recommended for any serious MMO deployment.
-
----
-
-## Future Database Support
-
-The architecture supports adding more backends:
-- **PostgreSQL** - For complex queries and relationships
-- **MongoDB** - For document-based storage
-- **MySQL** - Traditional relational database
-
-To add a new backend, implement the `AuthDatabaseTrait` in `src/auth/database.rs`.
+For user data that requires persistence, you can add a separate SQL database in the future.
 
 ---
 
@@ -220,11 +175,6 @@ To add a new backend, implement the `AuthDatabaseTrait` in `src/auth/database.rs
 - Use Redis password authentication
 - Consider Redis Sentinel for high availability
 
-### SQLite-Specific
-- Set proper file permissions (600)
-- Regular backups
-- Consider encrypting the database file
-
 ---
 
 ## Performance Tuning
@@ -239,13 +189,6 @@ maxmemory 2gb
 maxmemory-policy allkeys-lru
 ```
 
-### SQLite
-```sql
--- Enable WAL mode for better concurrency
-PRAGMA journal_mode=WAL;
-PRAGMA synchronous=NORMAL;
-```
-
 ---
 
 ## Monitoring
@@ -258,15 +201,9 @@ redis-cli MONITOR
 
 # Check memory usage
 redis-cli INFO memory
-```
 
-### SQLite
-```bash
-# Check database size
-ls -lh geekcraft.db
-
-# Vacuum to optimize
-sqlite3 geekcraft.db "VACUUM;"
+# Check connected clients
+redis-cli CLIENT LIST
 ```
 
 ---

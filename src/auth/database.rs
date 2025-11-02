@@ -2,13 +2,11 @@
 //! 
 //! Provides a trait-based abstraction that supports multiple database backends:
 //! - **In-Memory**: Fast, for testing and development (data lost on restart)
-//! - **SQLite**: Simple, file-based, perfect for development and single-server deployments
 //! - **Redis**: Fast NoSQL, perfect for production MMO servers (requires Redis server)
 //! 
 //! **Recommendations:**
-//! - **Development**: Use SQLite or In-Memory
-//! - **Production (Single Server)**: Use SQLite or Redis
-//! - **Production (MMO/Multi-Server)**: Use Redis (horizontal scaling, high concurrency)
+//! - **Development/Testing**: Use In-Memory
+//! - **Production MMO**: Use Redis (horizontal scaling, high concurrency)
 //! 
 //! Users can easily switch between backends by changing configuration.
 
@@ -19,23 +17,16 @@ use std::sync::{Arc, Mutex};
 /// Database backend configuration
 #[derive(Debug, Clone)]
 pub enum DatabaseBackend {
-    /// In-memory database (recommended for testing)
+    /// In-memory database (recommended for development and testing)
     /// - Pros: Fast, no setup required
     /// - Cons: Data lost on restart
-    /// - Use case: Testing, development
+    /// - Use case: Development, testing
     InMemory,
-    
-    /// SQLite database (recommended for development and small deployments)
-    /// - Pros: Simple, file-based, no external server needed
-    /// - Cons: Limited concurrent writes (~1000 users max)
-    /// - Use case: Single server, development, small deployments
-    #[cfg(feature = "sqlite")]
-    SQLite(String),
     
     /// Redis database (recommended for production MMO servers)
     /// - Pros: Very fast (in-memory), horizontal scaling, high concurrency
     /// - Cons: Requires Redis server, data in RAM
-    /// - Use case: Production MMO, multiple servers, >1000 concurrent users
+    /// - Use case: Production MMO, multiple servers, high concurrent users
     #[cfg(feature = "redis_backend")]
     Redis(String), // Connection string: "redis://127.0.0.1:6379"
 }
@@ -61,9 +52,6 @@ impl AuthDatabase {
     pub fn new(backend: DatabaseBackend) -> Result<Self, String> {
         let db: Box<dyn AuthDatabaseTrait> = match backend {
             DatabaseBackend::InMemory => Box::new(InMemoryBackend::new()),
-            
-            #[cfg(feature = "sqlite")]
-            DatabaseBackend::SQLite(path) => Box::new(SQLiteBackend::new(&path)?),
             
             #[cfg(feature = "redis_backend")]
             DatabaseBackend::Redis(url) => Box::new(RedisBackend::new(&url)?),
@@ -213,202 +201,6 @@ impl AuthDatabaseTrait for InMemoryBackend {
         
         let mut sessions = self.sessions.lock().unwrap();
         sessions.retain(|_, session| session.expires_at >= now);
-        
-        Ok(())
-    }
-}
-
-// ============================================================================
-// SQLite Backend Implementation
-// ============================================================================
-
-#[cfg(feature = "sqlite")]
-use rusqlite::Connection;
-
-#[cfg(feature = "sqlite")]
-struct SQLiteBackend {
-    conn: Arc<Mutex<Connection>>,
-}
-
-#[cfg(feature = "sqlite")]
-impl SQLiteBackend {
-    fn new(db_path: &str) -> Result<Self, String> {
-        let conn = Connection::open(db_path)
-            .map_err(|e| format!("Failed to open database: {}", e))?;
-        
-        let backend = SQLiteBackend {
-            conn: Arc::new(Mutex::new(conn)),
-        };
-        
-        backend.init_schema()?;
-        Ok(backend)
-    }
-    
-    fn init_schema(&self) -> Result<(), String> {
-        let conn = self.conn.lock().unwrap();
-        
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                created_at INTEGER NOT NULL
-            )",
-            [],
-        ).map_err(|e| format!("Failed to create users table: {}", e))?;
-        
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS sessions (
-                token TEXT PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                created_at INTEGER NOT NULL,
-                expires_at INTEGER NOT NULL,
-                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-            )",
-            [],
-        ).map_err(|e| format!("Failed to create sessions table: {}", e))?;
-        
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)",
-            [],
-        ).map_err(|e| format!("Failed to create index: {}", e))?;
-        
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)",
-            [],
-        ).map_err(|e| format!("Failed to create index: {}", e))?;
-        
-        Ok(())
-    }
-}
-
-#[cfg(feature = "sqlite")]
-impl AuthDatabaseTrait for SQLiteBackend {
-    fn create_user(&self, username: &str, password_hash: &str) -> Result<User, String> {
-        let conn = self.conn.lock().unwrap();
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-        
-        conn.execute(
-            "INSERT INTO users (username, password_hash, created_at) VALUES (?1, ?2, ?3)",
-            [username, password_hash, &now.to_string()],
-        ).map_err(|e| {
-            if e.to_string().contains("UNIQUE constraint failed") {
-                "Username already exists".to_string()
-            } else {
-                format!("Failed to create user: {}", e)
-            }
-        })?;
-        
-        let user_id = conn.last_insert_rowid();
-        
-        Ok(User {
-            id: user_id,
-            username: username.to_string(),
-            password_hash: password_hash.to_string(),
-            created_at: now,
-        })
-    }
-    
-    fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String> {
-        let conn = self.conn.lock().unwrap();
-        
-        let mut stmt = conn.prepare(
-            "SELECT id, username, password_hash, created_at FROM users WHERE username = ?1"
-        ).map_err(|e| format!("Failed to prepare statement: {}", e))?;
-        
-        let user = stmt.query_row([username], |row| {
-            Ok(User {
-                id: row.get(0)?,
-                username: row.get(1)?,
-                password_hash: row.get(2)?,
-                created_at: row.get(3)?,
-            })
-        });
-        
-        match user {
-            Ok(user) => Ok(Some(user)),
-            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
-            Err(e) => Err(format!("Database error: {}", e)),
-        }
-    }
-    
-    fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String> {
-        let conn = self.conn.lock().unwrap();
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-        
-        conn.execute(
-            "INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?1, ?2, ?3, ?4)",
-            [token, &user_id.to_string(), &now.to_string(), &expires_at.to_string()],
-        ).map_err(|e| format!("Failed to create session: {}", e))?;
-        
-        Ok(())
-    }
-    
-    fn get_session(&self, token: &str) -> Result<Option<Session>, String> {
-        let conn = self.conn.lock().unwrap();
-        
-        let mut stmt = conn.prepare(
-            "SELECT s.token, s.user_id, u.username, s.created_at, s.expires_at 
-             FROM sessions s 
-             JOIN users u ON s.user_id = u.id 
-             WHERE s.token = ?1"
-        ).map_err(|e| format!("Failed to prepare statement: {}", e))?;
-        
-        let session = stmt.query_row([token], |row| {
-            Ok(Session {
-                token: row.get(0)?,
-                user_id: row.get(1)?,
-                username: row.get(2)?,
-                created_at: row.get(3)?,
-                expires_at: row.get(4)?,
-            })
-        });
-        
-        match session {
-            Ok(session) => {
-                let now = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs() as i64;
-                
-                if session.expires_at < now {
-                    drop(stmt);
-                    drop(conn);
-                    let _ = self.delete_session(token);
-                    Ok(None)
-                } else {
-                    Ok(Some(session))
-                }
-            }
-            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
-            Err(e) => Err(format!("Database error: {}", e)),
-        }
-    }
-    
-    fn delete_session(&self, token: &str) -> Result<(), String> {
-        let conn = self.conn.lock().unwrap();
-        
-        conn.execute("DELETE FROM sessions WHERE token = ?1", [token])
-            .map_err(|e| format!("Failed to delete session: {}", e))?;
-        
-        Ok(())
-    }
-    
-    fn delete_expired_sessions(&self) -> Result<(), String> {
-        let conn = self.conn.lock().unwrap();
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-        
-        conn.execute("DELETE FROM sessions WHERE expires_at < ?1", [now])
-            .map_err(|e| format!("Failed to delete expired sessions: {}", e))?;
         
         Ok(())
     }
