@@ -1,62 +1,62 @@
-# Guide de Construction - GeekCraft
+# Build Guide - GeekCraft
 
-## Prérequis
+## Prerequisites
 
-Avant de construire GeekCraft, assurez-vous d'avoir :
+Before building GeekCraft, make sure you have:
 
-- **Rust 1.70+** : [Installation](https://rustup.rs)
-- **Cargo** (inclus avec Rust)
-- **Git** (pour cloner le dépôt)
+- **Rust 1.70+**: [Installation](https://rustup.rs)
+- **Cargo** (included with Rust)
+- **Git** (to clone the repository)
 
-### Vérifier l'installation
+### Verify installation
 
 ```bash
-rustc --version  # devrait afficher 1.70 ou plus
+rustc --version  # should display 1.70 or higher
 cargo --version
 ```
 
-## Construction du Projet
+## Building the Project
 
-### 1. Cloner le dépôt
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/xelfe/GeekCraft.git
-cd GeekCraft/GeekCraft
+cd GeekCraft
 ```
 
-### 2. Build en mode Debug (développement)
+### 2. Build in Debug mode (development)
 
 ```bash
 cargo build
 ```
 
-Cette commande :
-- Télécharge toutes les dépendances
-- Compile le projet en mode debug
-- Crée l'exécutable dans `target/debug/geekcraft`
+This command:
+- Downloads all dependencies
+- Compiles the project in debug mode
+- Creates the executable in `target/debug/geekcraft`
 
-**Temps estimé :** 2-5 minutes (première compilation)
+**Estimated time:** 2-5 minutes (first compilation)
 
-### 3. Build en mode Release (production)
+### 3. Build in Release mode (production)
 
 ```bash
 cargo build --release
 ```
 
-Cette commande :
-- Compile avec optimisations complètes
-- Crée l'exécutable dans `target/release/geekcraft`
-- **Recommandé pour le déploiement**
+This command:
+- Compiles with full optimizations
+- Creates the executable in `target/release/geekcraft`
+- **Recommended for deployment**
 
-**Temps estimé :** 3-7 minutes
+**Estimated time:** 3-7 minutes
 
-### 4. Vérifier la construction
+### 4. Verify the build
 
 ```bash
-# En mode debug
+# In debug mode
 ./target/debug/geekcraft --version
 
-# En mode release
+# In release mode
 ./target/release/geekcraft --version
 ```
 
@@ -145,21 +145,21 @@ cargo clean
 
 Cela supprime le dossier `target/` (utile si vous rencontrez des problèmes de compilation).
 
-## Problèmes Courants
+## Common Issues
 
-### Erreur : "linker not found"
+### Error: "linker not found"
 
-**Linux :**
+**Linux:**
 ```bash
 sudo apt-get install build-essential
 ```
 
-**macOS :**
+**macOS:**
 ```bash
 xcode-select --install
 ```
 
-### Erreur de dépendances
+### Dependency errors
 
 ```bash
 cargo update
@@ -167,171 +167,171 @@ cargo clean
 cargo build
 ```
 
-### Manque de mémoire lors de la compilation
+### Out of memory during compilation
 
 ```bash
-# Limiter le parallélisme
+# Limit parallelism
 cargo build -j 2
 ```
 
-## Scripts de Build
+## Build Scripts
 
-### Script de build rapide (Linux/macOS)
+### Quick build script (Linux/macOS)
 
-Créez un fichier `build.sh` :
+Create a `build.sh` file:
 
 ```bash
 #!/bin/bash
 set -e
 
-echo "🔨 Construction de GeekCraft..."
+echo "🔨 Building GeekCraft..."
 cargo build --release
 
-echo "✓ Build terminé !"
-echo "📍 Exécutable : ./target/release/geekcraft"
+echo "✓ Build complete!"
+echo "📍 Executable: ./target/release/geekcraft"
 ```
 
-Rendez-le exécutable :
+Make it executable:
 ```bash
 chmod +x build.sh
 ./build.sh
 ```
 
-### Script de build et test (Linux/macOS)
+### Build and test script (Linux/macOS)
 
-Créez un fichier `build-and-test.sh` :
+Create a `build-and-test.sh` file:
 
 ```bash
 #!/bin/bash
 set -e
 
-echo "🔨 Construction..."
+echo "🔨 Building..."
 cargo build --release
 
-echo "🧪 Tests..."
+echo "🧪 Testing..."
 cargo test
 
 echo "📚 Documentation..."
 cargo doc --no-deps
 
-echo "✓ Tout est prêt !"
+echo "✓ All done!"
 ```
 
-## Build pour la Production
+## Build for Production
 
-### Build optimisé
+### Optimized build
 
 ```bash
 cargo build --release --locked
 ```
 
-### Taille de l'exécutable
+### Executable size
 
-Réduire la taille de l'exécutable (optionnel) :
+Reduce executable size (optional):
 
-Ajoutez dans `Cargo.toml` :
+Add to `Cargo.toml`:
 
 ```toml
 [profile.release]
-opt-level = "z"     # Optimiser pour la taille
+opt-level = "z"     # Optimize for size
 lto = true          # Link Time Optimization
-codegen-units = 1   # Meilleure optimisation
-strip = true        # Supprimer les symboles de debug
+codegen-units = 1   # Better optimization
+strip = true        # Remove debug symbols
 ```
 
-Puis :
+Then:
 
 ```bash
 cargo build --release
 ```
 
-## Build Cross-Platform
+## Cross-Platform Build
 
-### Pour Windows (depuis Linux)
+### For Windows (from Linux)
 
 ```bash
 rustup target add x86_64-pc-windows-gnu
 cargo build --release --target x86_64-pc-windows-gnu
 ```
 
-### Pour Linux (depuis macOS)
+### For Linux (from macOS)
 
 ```bash
 rustup target add x86_64-unknown-linux-gnu
 cargo build --release --target x86_64-unknown-linux-gnu
 ```
 
-## Commandes Utiles
+## Useful Commands
 
 ```bash
-# Vérifier le code sans compiler
+# Check code without compiling
 cargo check
 
-# Formater le code
+# Format code
 cargo fmt
 
 # Linter (clippy)
 cargo clippy
 
-# Mise à jour des dépendances
+# Update dependencies
 cargo update
 
-# Voir l'arbre des dépendances
+# View dependency tree
 cargo tree
 
-# Statistiques du projet
+# Project statistics
 cargo count
 ```
 
-## Variables d'Environnement
+## Environment Variables
 
 ```bash
-# Port du serveur
+# Server port
 export GEEKCRAFT_PORT=3030
 
-# Niveau de log
+# Log level
 export RUST_LOG=info
 
-# Mode de développement
+# Development mode
 export GEEKCRAFT_DEV_MODE=true
 ```
 
 ## Next Steps
 
-Après avoir construit GeekCraft :
+After building GeekCraft:
 
-1. **Lancer le serveur**
+1. **Start the server**
    ```bash
    cargo run --release
    ```
 
-2. **Ouvrir le viewer exemple**
+2. **Open the example viewer**
    ```bash
    cd examples/viewer
-   open index.html  # ou double-cliquez sur le fichier
+   open index.html  # or double-click the file
    ```
 
-3. **Créer votre premier bot**
+3. **Create your first bot**
    ```bash
    cp examples/template_bot.js my_bot.js
-   # Éditez my_bot.js avec votre stratégie
+   # Edit my_bot.js with your strategy
    ```
 
-4. **Explorer la documentation**
-   - API Reference : `examples/API_REFERENCE.md`
-   - Exemples de bots : `examples/basic_bot.js` et `examples/advanced_bot.js`
-   - Viewer documentation : `examples/viewer/README.md`
+4. **Explore the documentation**
+   - API Reference: `examples/API_REFERENCE.md`
+   - Bot examples: `examples/basic_bot.js` and `examples/advanced_bot.js`
+   - Viewer documentation: `examples/viewer/README.md`
 
-5. **Créer votre propre viewer** (optionnel)
-   - Le moteur est headless - vous êtes libre de créer votre propre interface
-   - Utilisez le viewer HTML comme référence
-   - Technologies suggérées : React, Unity, Godot, terminal, etc.
+5. **Create your own viewer** (optional)
+   - The engine is headless - you are free to create your own interface
+   - Use the HTML viewer as a reference
+   - Suggested technologies: React, Unity, Godot, terminal, etc.
 
 ## Support
 
-En cas de problème :
-- Vérifiez les issues GitHub
-- Consultez la documentation Rust
-- Rejoignez notre Discord
+In case of problems:
+- Check GitHub issues
+- Consult Rust documentation
+- Join our Discord
 
-**Bon build ! 🚀**
+**Happy building! 🚀**

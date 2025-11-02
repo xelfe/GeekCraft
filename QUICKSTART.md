@@ -1,89 +1,89 @@
-# 🚀 GeekCraft - Guide de Démarrage Rapide
+# 🚀 GeekCraft - Quick Start Guide
 
-## Construction du Projet
+## Building the Project
 
-Pour construire GeekCraft, suivez ces étapes simples :
+To build GeekCraft, follow these simple steps:
 
-### Prérequis
+### Prerequisites
 
-1. **Installer Rust**
+1. **Install Rust**
    ```bash
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    source $HOME/.cargo/env
    ```
 
-2. **Vérifier l'installation**
+2. **Verify installation**
    ```bash
-   rustc --version  # Doit être 1.70+
+   rustc --version  # Must be 1.70+
    cargo --version
    ```
 
-### Construction
+### Building
 
 ```bash
-# 1. Naviguer vers le projet
+# 1. Navigate to the project
 cd GeekCraft
 
-# 2. Construire en mode release (optimisé)
+# 2. Build in release mode (optimized)
 cargo build --release
 
-# ⏳ Première compilation : 3-7 minutes
-# Les compilations suivantes seront beaucoup plus rapides
+# ⏳ First compilation: 3-7 minutes
+# Subsequent builds will be much faster
 ```
 
-### Lancement
+### Running
 
 ```bash
-# Lancer le serveur
+# Start the server
 cargo run --release
 
-# Le serveur démarre sur ws://localhost:3030
+# Server starts on ws://localhost:3030
 ```
 
-## Tester le Viewer
+## Test the Viewer
 
-Une fois le serveur lancé :
+Once the server is running:
 
 ```bash
-# Dans un nouveau terminal
+# In a new terminal
 cd examples/viewer
 
-# Ouvrir le viewer HTML
+# Open the HTML viewer
 open index.html  # macOS
 xdg-open index.html  # Linux
 start index.html  # Windows
 
-# Ou utilisez un serveur HTTP local
+# Or use a local HTTP server
 python3 -m http.server 8000
-# Puis ouvrez http://localhost:8000
+# Then open http://localhost:8000
 ```
 
-## Créer Votre Premier Bot
+## Create Your First Bot
 
 ```bash
-# 1. Copier le template
+# 1. Copy the template
 cp examples/template_bot.js my_bot.js
 
-# 2. Éditer avec votre stratégie
-nano my_bot.js  # ou votre éditeur préféré
+# 2. Edit with your strategy
+nano my_bot.js  # or your favorite editor
 
-# 3. Tester votre bot
-# (via l'API du serveur ou l'interface web)
+# 3. Test your bot
+# (via the server API or web interface)
 ```
 
-## Commandes Utiles
+## Useful Commands
 
 ```bash
-# Build rapide (debug)
+# Quick build (debug)
 cargo build
 
-# Build optimisé (release)
+# Optimized build (release)
 cargo build --release
 
-# Lancer directement
+# Run directly
 cargo run
 
-# Lancer en release
+# Run in release
 cargo run --release
 
 # Tests
@@ -92,71 +92,71 @@ cargo test
 # Documentation
 cargo doc --open
 
-# Nettoyer
+# Clean
 cargo clean
 
-# Vérifier sans compiler
+# Check without compiling
 cargo check
 
-# Formater le code
+# Format code
 cargo fmt
 
 # Linter
 cargo clippy
 ```
 
-## Structure du Projet
+## Project Structure
 
 ```
 GeekCraft/
-├── src/              # Code source Rust (moteur)
-├── examples/         # Bots JS et viewer HTML
-│   ├── *.js         # Exemples de bots
-│   └── viewer/      # Viewer HTML de base
+├── src/              # Rust source code (engine)
+├── examples/         # JS bots and HTML viewer
+│   ├── *.js         # Bot examples
+│   └── viewer/      # Basic HTML viewer
 ├── tests/           # Tests
-└── assets/          # Ressources (optionnel)
+└── assets/          # Resources (optional)
 ```
 
 ## Documentation
 
-- **README.md** - Documentation principale
-- **BUILD.md** - Guide de construction détaillé
-- **PROJECT_SUMMARY.md** - Résumé du projet
-- **STRUCTURE.md** - Structure complète
-- **examples/API_REFERENCE.md** - API JavaScript
-- **examples/viewer/README.md** - Documentation viewer
+- **README.md** - Main documentation
+- **BUILD.md** - Detailed build guide
+- **PROJECT_SUMMARY.md** - Project summary
+- **STRUCTURE.md** - Complete structure
+- **examples/API_REFERENCE.md** - JavaScript API
+- **examples/viewer/README.md** - Viewer documentation
 
-## Workflow de Développement
+## Development Workflow
 
 ```
-1. Éditer le code → 2. Compiler → 3. Tester → 4. Répéter
-         ↓                ↓           ↓
-    src/**/*.rs     cargo build   cargo test
+1. Edit code → 2. Compile → 3. Test → 4. Repeat
+       ↓            ↓          ↓
+  src/**/*.rs   cargo build  cargo test
 ```
 
 ## Troubleshooting
 
-### Erreur de compilation
+### Compilation error
 
 ```bash
-# Nettoyer et reconstruire
+# Clean and rebuild
 cargo clean
 cargo build --release
 ```
 
-### Linker non trouvé (Linux)
+### Linker not found (Linux)
 
 ```bash
 sudo apt-get install build-essential
 ```
 
-### Linker non trouvé (macOS)
+### Linker not found (macOS)
 
 ```bash
 xcode-select --install
 ```
 
-### Dépendances obsolètes
+### Outdated dependencies
 
 ```bash
 cargo update
@@ -164,38 +164,38 @@ cargo update
 
 ## Next Steps
 
-1. ✅ Construire le serveur (vous êtes ici)
-2. 📖 Lire l'API Reference (`examples/API_REFERENCE.md`)
-3. 🤖 Créer votre bot (`examples/template_bot.js`)
-4. 🎨 Tester le viewer (`examples/viewer/`)
-5. 🚀 Créer votre propre viewer (optionnel)
+1. ✅ Build the server (you are here)
+2. 📖 Read the API Reference (`examples/API_REFERENCE.md`)
+3. 🤖 Create your bot (`examples/template_bot.js`)
+4. 🎨 Test the viewer (`examples/viewer/`)
+5. 🚀 Create your own viewer (optional)
 
 ## Support
 
-- **Documentation** : Voir les fichiers `.md`
-- **Issues** : https://github.com/xelfe/GeekCraft/issues
-- **Discussions** : https://github.com/xelfe/GeekCraft/discussions
+- **Documentation**: See `.md` files
+- **Issues**: https://github.com/xelfe/GeekCraft/issues
+- **Discussions**: https://github.com/xelfe/GeekCraft/discussions
 
-## En Résumé
+## Summary
 
 ```bash
-# Build une fois
+# Build once
 cd GeekCraft
 cargo build --release
 
-# Lancez
+# Run
 cargo run --release
 
-# Testez
+# Test
 open examples/viewer/index.html
 
-# Codez
+# Code
 cp examples/template_bot.js my_bot.js
-# Éditez my_bot.js avec votre stratégie !
+# Edit my_bot.js with your strategy!
 ```
 
-**C'est tout ! Vous êtes prêt à coder ! 🎮🚀**
+**That's it! You're ready to code! 🎮🚀**
 
 ---
 
-*Pour plus de détails, consultez `BUILD.md`*
+*For more details, see `BUILD.md`*

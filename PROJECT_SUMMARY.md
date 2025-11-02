@@ -1,74 +1,74 @@
-# GeekCraft - Résumé du Projet
+# GeekCraft - Project Summary
 
-## Vue d'ensemble
+## Overview
 
-**GeekCraft** est un jeu de programmation inspiré de **Screeps** et **Starcraft**, où les joueurs programment des bots en JavaScript pour contrôler des unités dans un environnement de stratégie en temps réel.
+**GeekCraft** is a programming game inspired by **Screeps** and **Starcraft**, where players program bots in JavaScript to control units in a real-time strategy environment.
 
-### Concept Clé
+### Key Concept
 
-Le moteur de jeu est **headless par conception** - il ne fournit **aucun rendu graphique intégré**. Les joueurs sont **complètement libres** de créer leur propre interface de visualisation en utilisant la technologie de leur choix.
+The game engine is **headless by design** - it provides **no integrated graphics rendering**. Players are **completely free** to create their own visualization interface using the technology of their choice.
 
 ## Architecture
 
-### Backend - Moteur de Jeu (Rust)
+### Backend - Game Engine (Rust)
 
-Le serveur GeekCraft est écrit en Rust pour des raisons de performance et de sécurité :
+The GeekCraft server is written in Rust for performance and security reasons:
 
 ```
 GeekCraft (Rust)
-├── Moteur de simulation
-│   ├── Monde de jeu (grille, ressources)
-│   ├── Entités (unités, bâtiments)
-│   └── Logique de jeu (déplacement, combat, ressources)
+├── Simulation engine
+│   ├── Game world (grid, resources)
+│   ├── Entities (units, buildings)
+│   └── Game logic (movement, combat, resources)
 │
-├── Sandbox JavaScript
-│   ├── Exécution sécurisée des bots
-│   ├── Limitations de temps et mémoire
-│   └── API de scripting
+├── JavaScript sandbox
+│   ├── Secure bot execution
+│   ├── Time and memory limitations
+│   └── Scripting API
 │
-└── Serveur réseau
-    ├── WebSocket pour temps réel
-    ├── REST API pour requêtes
-    └── Diffusion d'événements
+└── Network server
+    ├── WebSocket for real-time
+    ├── REST API for requests
+    └── Event broadcasting
 ```
 
-**Caractéristiques :**
-- ⚡ Performance élevée
-- 🔒 Exécution sécurisée des scripts
-- 🌐 Communication temps réel
-- 📊 Simulation déterministe
+**Features:**
+- ⚡ High performance
+- 🔒 Secure script execution
+- 🌐 Real-time communication
+- 📊 Deterministic simulation
 
-### Frontend - Bots des Joueurs (JavaScript)
+### Frontend - Player Bots (JavaScript)
 
-Les joueurs programment leurs bots en JavaScript :
+Players program their bots in JavaScript:
 
 ```javascript
-class MonBot {
+class MyBot {
     onTick(gameState) {
-        // Stratégie du bot
+        // Bot strategy
         const units = gameState.getMyUnits();
         for (const unit of units) {
-            // Logique de contrôle
+            // Control logic
         }
     }
 }
 ```
 
-**API Disponible :**
-- 🎮 Contrôle des unités
-- 📊 Accès au state du jeu
-- 🏗️ Construction de bâtiments
-- ⚔️ Gestion du combat
-- 💎 Collecte de ressources
+**Available API:**
+- 🎮 Unit control
+- 📊 Game state access
+- 🏗️ Building construction
+- ⚔️ Combat management
+- 💎 Resource collection
 
-### Visualisation - Client Personnalisé (Au choix)
+### Visualization - Custom Client (Your choice)
 
-Les joueurs créent leur propre interface :
+Players create their own interface:
 
-**Options disponibles :**
+**Available options:**
 
 #### Web
-- **HTML5 Canvas** (exemple fourni)
+- **HTML5 Canvas** (example provided)
 - **React/Vue/Angular**
 - **Three.js** (3D)
 - **Phaser/PixiJS** (2D gaming)
@@ -84,23 +84,23 @@ Les joueurs créent leur propre interface :
 - **Rich** (Python)
 - **Cursive** (Rust)
 
-#### Autre
-- Tout ce qui peut se connecter via WebSocket !
+#### Other
+- Anything that can connect via WebSocket!
 
 ## Communication
 
-### Protocol WebSocket
+### WebSocket Protocol
 
 ```
-Joueur Bot (JS) ←→ Serveur (Rust) ←→ Viewer (Libre)
+Player Bot (JS) ←→ Server (Rust) ←→ Viewer (Free)
                      ↓
-                  Simulation
+                 Simulation
 ```
 
-**Messages types :**
+**Message types:**
 
 ```javascript
-// Serveur → Client
+// Server → Client
 {
     "type": "gameState",
     "data": {
@@ -111,7 +111,7 @@ Joueur Bot (JS) ←→ Serveur (Rust) ←→ Viewer (Libre)
     }
 }
 
-// Client → Serveur  
+// Client → Server  
 {
     "type": "command",
     "data": {
@@ -122,218 +122,218 @@ Joueur Bot (JS) ←→ Serveur (Rust) ←→ Viewer (Libre)
 }
 ```
 
-## Flux de Jeu
+## Game Flow
 
-1. **Joueur code son bot** en JavaScript
-2. **Bot soumis au serveur** via API
-3. **Serveur exécute le bot** à chaque tick
-4. **État du jeu mis à jour** selon les actions
-5. **Serveur diffuse l'état** via WebSocket
-6. **Viewer affiche** le jeu (si connecté)
+1. **Player codes their bot** in JavaScript
+2. **Bot submitted to server** via API
+3. **Server executes bot** each tick
+4. **Game state updated** based on actions
+5. **Server broadcasts state** via WebSocket
+6. **Viewer displays** the game (if connected)
 
 ```
-[Code Bot] → [Serveur] → [Simulation]
+[Bot Code] → [Server] → [Simulation]
                 ↓
-            [WebSocket]
+           [WebSocket]
                 ↓
-         [Votre Viewer]
+          [Your Viewer]
 ```
 
-## Exemples Fournis
+## Provided Examples
 
-### 1. Bots JavaScript
+### 1. JavaScript Bots
 
 #### `basic_bot.js`
-Bot simple pour débuter :
-- Déplacement vers ressources
-- Réponse aux événements
-- Gestion basique
+Simple bot to get started:
+- Movement to resources
+- Event handling
+- Basic management
 
 #### `advanced_bot.js`
-Stratégies avancées :
-- Rôles d'unités (workers, soldiers)
-- Gestion de ressources
-- Construction de bases
-- Tactiques de combat
+Advanced strategies:
+- Unit roles (workers, soldiers)
+- Resource management
+- Base construction
+- Combat tactics
 
 #### `template_bot.js`
-Template vide pour démarrer
+Empty template to start with
 
-### 2. Viewer HTML
+### 2. HTML Viewer
 
-Un exemple complet de client web :
-- Interface moderne (HTML/CSS/JS)
-- Canvas pour rendu 2D
-- Connexion WebSocket
-- Contrôles de caméra
-- Sélection d'unités
-- Console de logs
+A complete web client example:
+- Modern interface (HTML/CSS/JS)
+- Canvas for 2D rendering
+- WebSocket connection
+- Camera controls
+- Unit selection
+- Log console
 
-**Localisation :** `examples/viewer/`
+**Location:** `examples/viewer/`
 
 ### 3. Documentation
 
 #### `API_REFERENCE.md`
-Documentation complète de l'API JavaScript pour les bots
+Complete JavaScript API documentation for bots
 
-## Structure du Projet
+## Project Structure
 
 ```
 GeekCraft/
-├── src/                    # Code source Rust
-│   ├── main.rs            # Point d'entrée
-│   ├── lib.rs             # Bibliothèque
-│   ├── game/              # Moteur de jeu
-│   │   ├── world.rs       # Monde de jeu
-│   │   ├── entities.rs    # Entités
+├── src/                    # Rust source code
+│   ├── main.rs            # Entry point
+│   ├── lib.rs             # Library
+│   ├── game/              # Game engine
+│   │   ├── world.rs       # Game world
+│   │   ├── entities.rs    # Entities
 │   │   └── simulation.rs  # Simulation
-│   ├── api/               # API de scripting
-│   │   ├── scripting.rs   # Interface bots
-│   │   └── events.rs      # Événements
-│   ├── network/           # Serveur réseau
+│   ├── api/               # Scripting API
+│   │   ├── scripting.rs   # Bot interface
+│   │   └── events.rs      # Events
+│   ├── network/           # Network server
 │   │   └── server.rs      # WebSocket/REST
-│   └── scripting/         # Sandbox JS
-│       └── sandbox.rs     # Exécution sécurisée
+│   └── scripting/         # JS sandbox
+│       └── sandbox.rs     # Secure execution
 │
-├── examples/              # Exemples
-│   ├── basic_bot.js      # Bot simple
-│   ├── advanced_bot.js   # Bot avancé
+├── examples/              # Examples
+│   ├── basic_bot.js      # Simple bot
+│   ├── advanced_bot.js   # Advanced bot
 │   ├── template_bot.js   # Template
-│   ├── API_REFERENCE.md  # Doc API
-│   └── viewer/           # Viewer HTML exemple
+│   ├── API_REFERENCE.md  # API docs
+│   └── viewer/           # HTML viewer example
 │       ├── index.html
 │       ├── viewer.js
 │       ├── style.css
 │       └── README.md
 │
 ├── tests/                # Tests
-├── assets/               # Ressources (optionnel)
-├── Cargo.toml           # Config Rust
-├── BUILD.md             # Guide de construction
+├── assets/               # Resources (optional)
+├── Cargo.toml           # Rust config
+├── BUILD.md             # Build guide
 └── README.md            # Documentation
 ```
 
 ## Roadmap
 
-### Phase 1 : Fondations ✅
-- [x] Structure du projet
-- [x] Documentation de base
-- [x] Exemples de bots JS
-- [x] Viewer HTML exemple
+### Phase 1: Foundations ✅
+- [x] Project structure
+- [x] Basic documentation
+- [x] JS bot examples
+- [x] HTML viewer example
 
-### Phase 2 : Moteur de Base 🚧
-- [ ] Simulation du monde
-- [ ] Système d'entités
-- [ ] Gestion des ressources
-- [ ] Système de déplacement
+### Phase 2: Base Engine 🚧
+- [ ] World simulation
+- [ ] Entity system
+- [ ] Resource management
+- [ ] Movement system
 
-### Phase 3 : Scripting ⏳
-- [ ] Sandbox JavaScript (Boa/Deno)
-- [ ] API de scripting
-- [ ] Système d'événements
-- [ ] Limitations de sécurité
+### Phase 3: Scripting ⏳
+- [ ] JavaScript sandbox (Boa/Deno)
+- [ ] Scripting API
+- [ ] Event system
+- [ ] Security limitations
 
-### Phase 4 : Réseau ⏳
-- [ ] Serveur WebSocket
+### Phase 4: Networking ⏳
+- [ ] WebSocket server
 - [ ] REST API
-- [ ] Authentification
-- [ ] Multi-joueurs
+- [ ] Authentication
+- [ ] Multiplayer
 
-### Phase 5 : Gameplay 📅
-- [ ] Système de combat
-- [ ] Construction de bâtiments
+### Phase 5: Gameplay 📅
+- [ ] Combat system
+- [ ] Building construction
 - [ ] Tech tree
 - [ ] Fog of war
 
-### Phase 6 : Avancé 📅
+### Phase 6: Advanced 📅
 - [ ] Replays
-- [ ] Classements
-- [ ] Tournois
-- [ ] IA de référence
+- [ ] Leaderboards
+- [ ] Tournaments
+- [ ] Reference AI
 
-## Technologies Utilisées
+## Technologies Used
 
 ### Backend
-- **Rust** 1.70+ - Langage principal
-- **Tokio** - Runtime async
-- **Warp/Actix** - Serveur web
-- **Boa/Deno** - Moteur JavaScript
-- **Serde** - Sérialisation JSON
+- **Rust** 1.70+ - Main language
+- **Tokio** - Async runtime
+- **Warp/Actix** - Web server
+- **Boa/Deno** - JavaScript engine
+- **Serde** - JSON serialization
 
-### Exemples Frontend
-- **HTML5/CSS3/JavaScript** - Viewer de base
-- **Canvas API** - Rendu 2D
-- **WebSocket API** - Communication temps réel
+### Frontend Examples
+- **HTML5/CSS3/JavaScript** - Basic viewer
+- **Canvas API** - 2D rendering
+- **WebSocket API** - Real-time communication
 
-## Comment Contribuer
+## How to Contribute
 
-1. **Moteur de jeu** : Implémenter la simulation
-2. **API JavaScript** : Enrichir les fonctionnalités bots
-3. **Documentation** : Améliorer les guides
-4. **Exemples** : Créer plus de bots et viewers
-5. **Tests** : Ajouter des tests unitaires et d'intégration
+1. **Game engine**: Implement simulation
+2. **JavaScript API**: Enrich bot features
+3. **Documentation**: Improve guides
+4. **Examples**: Create more bots and viewers
+5. **Tests**: Add unit and integration tests
 
-## Philosophie du Projet
+## Project Philosophy
 
-### Liberté de Visualisation
+### Visualization Freedom
 
-GeekCraft ne vous impose **aucune contrainte graphique**. Vous êtes libre de :
-- Créer un rendu 3D spectaculaire
-- Faire une interface terminal minimaliste
-- Développer une app mobile
-- Même ne rien afficher et juste logger !
+GeekCraft imposes **no graphical constraints**. You are free to:
+- Create spectacular 3D rendering
+- Make a minimalist terminal interface
+- Develop a mobile app
+- Even display nothing and just log!
 
-### Open Source et Éducatif
+### Open Source and Educational
 
-Le projet vise à :
-- Enseigner la programmation
-- Promouvoir Rust et JavaScript
-- Créer une communauté de développeurs
-- Partager les connaissances
+The project aims to:
+- Teach programming
+- Promote Rust and JavaScript
+- Build a developer community
+- Share knowledge
 
-### Performance et Sécurité
+### Performance & Security
 
-- Code Rust pour la vitesse
-- Sandbox pour la sécurité
-- API claire et documentée
-- Tests et validation
+- Rust code for speed
+- Sandbox for security
+- Clear and documented API
+- Testing and validation
 
-## Démarrage Rapide
+## Quick Start
 
 ```bash
-# 1. Clone le projet
+# 1. Clone the project
 git clone https://github.com/xelfe/GeekCraft.git
-cd GeekCraft/GeekCraft
+cd GeekCraft
 
-# 2. Build le serveur
+# 2. Build the server
 cargo build --release
 
-# 3. Lance le serveur
+# 3. Start the server
 cargo run --release
 
-# 4. Ouvre le viewer exemple
+# 4. Open the example viewer
 open examples/viewer/index.html
 
-# 5. Crée ton bot
+# 5. Create your bot
 cp examples/template_bot.js my_bot.js
-# Édite my_bot.js avec ton code
+# Edit my_bot.js with your code
 
-# 6. Soumets ton bot (via API ou interface)
+# 6. Submit your bot (via API or interface)
 ```
 
-## Ressources
+## Resources
 
-- **Documentation** : `README.md`, `BUILD.md`, `API_REFERENCE.md`
-- **Exemples** : Dossier `examples/`
-- **Repository** : https://github.com/xelfe/GeekCraft
-- **Licence** : MIT
+- **Documentation**: `README.md`, `BUILD.md`, `API_REFERENCE.md`
+- **Examples**: `examples/` folder
+- **Repository**: https://github.com/xelfe/GeekCraft
+- **License**: MIT
 
-## Contact et Support
+## Contact and Support
 
-- **Issues** : GitHub Issues
-- **Discussions** : GitHub Discussions
-- **Contributions** : Pull Requests bienvenues !
+- **Issues**: GitHub Issues
+- **Discussions**: GitHub Discussions
+- **Contributions**: Pull Requests welcome!
 
 ---
 
-**GeekCraft** - Votre jeu, votre code, votre vision ! 🎮🚀
+**GeekCraft** - Your game, your code, your vision! 🎮🚀
