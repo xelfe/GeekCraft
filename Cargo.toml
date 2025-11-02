@@ -10,6 +10,20 @@ license = "MIT"
 # Async Runtime
 tokio = { version = "1", features = ["full"] }
 
+# Web Framework
+axum = { version = "0.7", features = ["ws"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# WebSocket
+tokio-tungstenite = "0.21"
+futures-util = "0.3"
+
 # Utilities
 log = "0.4"
 env_logger = "0.11"

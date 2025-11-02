@@ -116,6 +116,32 @@ class GeekCraftViewer {
 
     handleMessage(message) {
         switch (message.type) {
+            case 'welcome':
+                // Handle welcome message from new server
+                this.log(`Server: ${message.message}`, 'success');
+                // Request initial game state
+                this.sendCommand({ type: 'getGameState' });
+                break;
+            
+            case 'gameStateResponse':
+                // Handle game state response from new server
+                if (!this.gameState) {
+                    this.gameState = { tick: 0, players: [], units: [] };
+                }
+                this.gameState.tick = message.tick || 0;
+                this.gameState.players = message.players || [];
+                this.updateUI();
+                break;
+            
+            case 'playersResponse':
+                // Handle players list response
+                if (!this.gameState) {
+                    this.gameState = { tick: 0, players: [], units: [] };
+                }
+                this.gameState.players = message.players || [];
+                this.updateUI();
+                break;
+            
             case 'gameState':
                 this.gameState = message.data;
                 this.updateUI();
@@ -129,6 +155,10 @@ class GeekCraftViewer {
             
             case 'event':
                 this.handleGameEvent(message.data);
+                break;
+            
+            case 'error':
+                this.log(`Server error: ${message.message}`, 'error');
                 break;
             
             default:
