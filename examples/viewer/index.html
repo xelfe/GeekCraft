@@ -20,12 +20,34 @@
             <!-- Configuration Panel -->
             <aside class="sidebar">
                 <section class="config-panel">
-                    <h2>Configuration</h2>
+                    <h2>Authentication</h2>
+                    <div id="auth-status" class="auth-status auth-logged-out">Not logged in</div>
+                    <div class="input-group">
+                        <label for="api-url">API URL:</label>
+                        <input type="text" id="api-url" value="http://localhost:3030" />
+                    </div>
+                    <div class="input-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" placeholder="Enter username" />
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" placeholder="Enter password" />
+                    </div>
+                    <div class="button-group">
+                        <button id="login-btn" class="btn btn-primary">Login</button>
+                        <button id="register-btn" class="btn btn-secondary">Register</button>
+                        <button id="logout-btn" class="btn btn-secondary" disabled>Logout</button>
+                    </div>
+                </section>
+                
+                <section class="config-panel">
+                    <h2>WebSocket Connection</h2>
                     <div class="input-group">
                         <label for="server-url">Server URL:</label>
                         <input type="text" id="server-url" value="ws://localhost:3030/ws" />
                     </div>
-                    <button id="connect-btn" class="btn btn-primary">Connect</button>
+                    <button id="connect-btn" class="btn btn-primary" disabled>Connect</button>
                     <button id="disconnect-btn" class="btn btn-secondary" disabled>Disconnect</button>
                 </section>
 
