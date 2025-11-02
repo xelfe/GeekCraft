@@ -2,20 +2,85 @@
 
 ## ✅ Files Translated to English
 
-All project files have been translated from French to English for international accessibility.
+All project documentation files have been translated from French to English for international accessibility.
 
 ### Documentation Files
 
 - ✅ **README.md** - Main project documentation
   - Description
+  - Design Principles (added)
   - Project structure
   - Features
-  - Installation steps
+  - Installation steps (path fixed: cd GeekCraft)
   - Quick start guide
   - Technical architecture
   - Commands
   - Roadmap
   - Contributing guidelines
+
+- ✅ **STRUCTURE.md** - Complete project structure
+  - Overview
+  - Current structure
+  - Changes made
+  - Key concepts
+  - Workflow
+  - Getting started
+  - Available documentation
+  - Next steps
+  - Technologies
+  - License and contribution
+
+- ✅ **PROJECT_SUMMARY.md** - Project summary
+  - Overview
+  - Key concept
+  - Architecture
+  - Communication
+  - Game flow
+  - Provided examples
+  - Roadmap
+  - Technologies used
+  - How to contribute
+  - Project philosophy
+  - Performance & security
+  - Quick start (path fixed: cd GeekCraft)
+  - Resources
+
+- ✅ **CHANGELOG.md** - Project changelog
+  - All headings and descriptions
+  - Roadmap phases
+  - Technologies used
+  - Project files
+  - Contribution section
+  - Fixed mojibake: "�� Sandbox JavaScript sécurisé" → "🔒 Secure JavaScript sandbox"
+  - Slogan: "Votre jeu, votre code, votre vision !" → "Your game, your code, your vision!"
+
+- ✅ **BUILD.md** - Build guide
+  - Prerequisites
+  - Building the project
+  - Execution
+  - Tests
+  - Documentation
+  - Cleanup
+  - Common issues
+  - Build scripts
+  - Production build
+  - Cross-platform build
+  - Useful commands
+  - Environment variables
+  - Next steps
+
+- ✅ **QUICKSTART.md** - Quick start guide
+  - Building the project
+  - Testing the viewer
+  - Creating first bot
+  - Useful commands
+  - Project structure
+  - Documentation
+  - Development workflow
+  - Troubleshooting
+  - Next steps
+  - Support
+  - Summary
 
 ### Source Code (Rust)
 
@@ -47,25 +112,46 @@ All project files have been translated from French to English for international 
 ## Language Consistency
 
 All user-facing text is now in English:
-- ✅ Documentation
-- ✅ Code comments
+- ✅ Documentation (all .md files)
+- ✅ Code comments (verified in src/)
 - ✅ UI elements
 - ✅ Log messages
 - ✅ Error messages
 
-## Files Remaining in Original State
+## Installation Path Fixes
 
-The following files don't require translation (code-only or already in English):
+Fixed incorrect installation paths across documentation:
+- ❌ `cd GeekCraft/GeekCraft` → ✅ `cd GeekCraft`
+- Updated in: README.md, PROJECT_SUMMARY.md
+- STRUCTURE.md already had correct path
+
+## Files Already in English
+
+The following files were already in English and did not require translation:
 
 - JavaScript bot examples (basic_bot.js, advanced_bot.js, template_bot.js)
-- API_REFERENCE.md (already in English)
+- API_REFERENCE.md
 - CSS files (no text content)
-- Rust implementation files (code only)
+- Rust implementation files (code comments already in English)
 - Configuration files (Cargo.toml, .gitignore)
+- Viewer examples (examples/viewer/README.md)
 
-## Next Steps for Full Internationalization
+## Cargo.toml Verification
 
-If additional documentation files (BUILD.md, QUICKSTART.md, etc.) need translation, they should follow the same pattern established here.
+- ✅ No stray code fence markers (```) found
+- ✅ Valid TOML syntax
+- ✅ Package name matches crate usage: "geekcraft"
+- ✅ All dependencies are valid (tokio, log, env_logger, anyhow)
+- ✅ Build verified with `cargo build`
+
+## Design Principles Documentation
+
+Added clarification in README.md about Space instructions alignment:
+- Server is implemented in Rust
+- Players can use any scripting language via the API/server
+- All documentation and comments are in English
+- Working JavaScript example provided as starter
+- Viewer is intentionally simple (players build their own UI)
 
 ## Benefits of English Translation
 
@@ -74,8 +160,10 @@ If additional documentation files (BUILD.md, QUICKSTART.md, etc.) need translati
 3. **Better Documentation** - Clear, consistent terminology
 4. **Wider Adoption** - More users can understand and use the project
 5. **Professional Presentation** - Follows industry standards
+6. **Space Instructions Compliance** - Meets all standardization requirements
 
 ---
 
-**Translation Status:** ✅ Complete for core files
-**Date:** November 1, 2025
+**Translation Status:** ✅ Complete
+**Date:** November 2, 2025
+**Scope:** All documentation files, code comments verified, paths corrected, Cargo.toml validated
