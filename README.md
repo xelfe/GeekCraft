@@ -1,6 +1,6 @@
 # GeekCraft
 
-<img src="https://img.shields.io/badge/version-0.1.0-blue">
+<img src="https://img.shields.io/badge/version-0.2.0-blue">
 <img src="https://img.shields.io/badge/rust-1.70+-orange">
 <img src="https://img.shields.io/badge/license-MIT-green">
 
@@ -60,14 +60,19 @@ GeekCraft
 ```
 
 ## Features
-- Rust Game Engine
-- JavaScript Programming
-- WebSocket/REST API (Axum)
-- Headless by Design
-- Example HTML Viewer
-- Secure JavaScript Sandbox
-- World Simulation
-- Open API
+- ✅ Rust Game Engine with Tokio async runtime
+- ✅ Axum HTTP/WebSocket Server
+- ✅ REST API for code submission and game state
+- ✅ WebSocket for real-time communication
+- ✅ Code validation and storage
+- ✅ Basic world simulation (tick counter, terrain, resources)
+- ✅ Integration tests
+- ✅ Example HTML Viewer
+- ✅ Comprehensive API documentation
+- 🚧 JavaScript Sandbox (code storage implemented, execution pending)
+- 🚧 Entity and movement systems
+- 📅 Combat and building systems
+- 📅 Authentication and multiplayer
 
 ## Installation
 
@@ -175,14 +180,22 @@ curl http://localhost:3030/api/gamestate
 ## Roadmap
 
 - [x] Basic project structure
+- [x] Complete documentation
 - [x] JavaScript API for bots
-- [x] WebSocket/REST server (Axum)
-- [ ] World simulation engine
-- [ ] Secure JavaScript sandbox
-- [ ] Basic graphical interface
-- [ ] Resource system
+- [x] Axum HTTP/WebSocket server
+- [x] REST API endpoints (health, submit, players, gamestate)
+- [x] WebSocket real-time communication
+- [x] Code validation and storage
+- [x] Basic world simulation (tick, terrain, resources)
+- [x] Integration tests
+- [ ] Full JavaScript sandbox with execution (Boa/Deno)
+- [ ] Complete world simulation engine
+- [ ] Entity system for units and buildings
+- [ ] Resource collection and management
+- [ ] Movement system
 - [ ] Combat system
-- [ ] Multiplayer
+- [ ] Authentication and authorization
+- [ ] Multiplayer synchronization
 - [ ] Replays and statistics
 
 ## Contributing
