@@ -71,6 +71,10 @@ impl InMemoryRunStore {
     pub fn remove_run(&mut self, run_id: &str) -> Option<CampaignRun> {
         self.runs.remove(run_id)
     }
+
+    pub fn insert_run(&mut self, run_id: String, run: CampaignRun) {
+        self.runs.insert(run_id, run);
+    }
 }
 
 /// Campaign manager handles campaign operations including persistence
@@ -88,7 +92,11 @@ impl CampaignManager {
         
         // Create save directory if it doesn't exist
         if !save_path.exists() {
-            let _ = fs::create_dir_all(&save_path);
+            if let Err(e) = fs::create_dir_all(&save_path) {
+                log::warn!("Failed to create save directory {:?}: {}", save_path, e);
+            } else {
+                log::info!("Created save directory at {:?}", save_path);
+            }
         }
 
         Self {
@@ -166,7 +174,7 @@ impl CampaignManager {
         let run: CampaignRun = serde_json::from_str(&json)
             .map_err(|e| format!("Failed to deserialize run: {}", e))?;
 
-        self.store.runs.insert(run_id.to_string(), run.clone());
+        self.store.insert_run(run_id.to_string(), run.clone());
         
         log::info!("Loaded run {} from {:?}", run_id, file_path);
         Ok(run)
