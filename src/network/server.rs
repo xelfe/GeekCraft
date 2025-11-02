@@ -7,6 +7,8 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
     Router, Json,
+    http::{Request, StatusCode},
+    middleware::{self, Next},
 };
 use axum::extract::ws::{WebSocket, Message};
 use tower_http::cors::{CorsLayer, Any};
@@ -16,18 +18,20 @@ use futures_util::{SinkExt, StreamExt};
 
 use crate::game::world::World;
 use crate::scripting::sandbox::ScriptEngine;
+use crate::auth::AuthService;
+use crate::auth::models::{RegisterRequest, LoginRequest};
 
 /// Shared application state
 #[derive(Clone)]
 pub struct AppState {
     pub game_world: Arc<RwLock<World>>,
     pub script_engine: Arc<RwLock<ScriptEngine>>,
+    pub auth_service: Arc<AuthService>,
 }
 
 /// Request to submit player code
 #[derive(Debug, Deserialize)]
 pub struct CodeSubmission {
-    pub player_id: String,
     pub code: String,
 }
 
@@ -59,20 +63,30 @@ pub struct GameStateResponse {
 }
 
 /// Start the Axum HTTP and WebSocket server
-pub async fn start_server(game_world: Arc<RwLock<World>>, script_engine: Arc<RwLock<ScriptEngine>>) -> anyhow::Result<()> {
+pub async fn start_server(
+    game_world: Arc<RwLock<World>>, 
+    script_engine: Arc<RwLock<ScriptEngine>>,
+    auth_service: Arc<AuthService>,
+) -> anyhow::Result<()> {
     let app_state = AppState {
         game_world,
         script_engine,
+        auth_service,
     };
 
     // Build the router with all endpoints
     let app = Router::new()
-        // REST API endpoints
+        // Public endpoints (no auth required)
         .route("/", get(root_handler))
         .route("/api/health", get(health_handler))
+        .route("/api/auth/register", post(register_handler))
+        .route("/api/auth/login", post(login_handler))
+        // Protected endpoints (auth required)
+        .route("/api/auth/logout", post(logout_handler))
         .route("/api/submit", post(submit_code_handler))
         .route("/api/players", get(list_players_handler))
         .route("/api/gamestate", get(game_state_handler))
+        .route_layer(middleware::from_fn_with_state(app_state.clone(), auth_middleware))
         // WebSocket endpoint
         .route("/ws", get(websocket_handler))
         // Add state
@@ -99,14 +113,92 @@ pub async fn start_server(game_world: Arc<RwLock<World>>, script_engine: Arc<RwL
     log::info!("✓ API endpoints:");
     log::info!("  - GET  /");
     log::info!("  - GET  /api/health");
-    log::info!("  - POST /api/submit");
-    log::info!("  - GET  /api/players");
-    log::info!("  - GET  /api/gamestate");
+    log::info!("  - POST /api/auth/register");
+    log::info!("  - POST /api/auth/login");
+    log::info!("  - POST /api/auth/logout (requires auth)");
+    log::info!("  - POST /api/submit (requires auth)");
+    log::info!("  - GET  /api/players (requires auth)");
+    log::info!("  - GET  /api/gamestate (requires auth)");
 
     // Start the server
     axum::serve(listener, app).await?;
     
     Ok(())
+}
+
+/// Authentication middleware
+async fn auth_middleware(
+    State(state): State<AppState>,
+    mut request: Request<axum::body::Body>,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    // Skip auth for public endpoints
+    let path = request.uri().path();
+    if path == "/" 
+        || path == "/api/health" 
+        || path == "/api/auth/register" 
+        || path == "/api/auth/login" 
+        || path == "/ws" {
+        return Ok(next.run(request).await);
+    }
+    
+    // Get Authorization header
+    let auth_header = request
+        .headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok());
+    
+    let token = match auth_header {
+        Some(header) if header.starts_with("Bearer ") => {
+            header.trim_start_matches("Bearer ")
+        }
+        _ => return Err(StatusCode::UNAUTHORIZED),
+    };
+    
+    // Validate token
+    match state.auth_service.validate_token(token) {
+        Some(session) => {
+            // Add user info to request extensions
+            request.extensions_mut().insert(session);
+            Ok(next.run(request).await)
+        }
+        None => Err(StatusCode::UNAUTHORIZED),
+    }
+}
+
+/// Register handler
+async fn register_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<RegisterRequest>,
+) -> impl IntoResponse {
+    let response = state.auth_service.register(&payload.username, &payload.password);
+    Json(response)
+}
+
+/// Login handler
+async fn login_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<LoginRequest>,
+) -> impl IntoResponse {
+    let response = state.auth_service.login(&payload.username, &payload.password);
+    Json(response)
+}
+
+/// Logout handler
+async fn logout_handler(
+    State(state): State<AppState>,
+    request: Request<axum::body::Body>,
+) -> impl IntoResponse {
+    // Get token from Authorization header
+    let token = request
+        .headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .unwrap_or("");
+    
+    let response = state.auth_service.logout(token);
+    Json(response)
 }
 
 /// Root handler - provides API information
@@ -116,9 +208,12 @@ async fn root_handler() -> impl IntoResponse {
         "version": env!("CARGO_PKG_VERSION"),
         "endpoints": {
             "health": "GET /api/health",
-            "submit_code": "POST /api/submit",
-            "list_players": "GET /api/players",
-            "game_state": "GET /api/gamestate",
+            "register": "POST /api/auth/register",
+            "login": "POST /api/auth/login",
+            "logout": "POST /api/auth/logout (requires auth)",
+            "submit_code": "POST /api/submit (requires auth)",
+            "list_players": "GET /api/players (requires auth)",
+            "game_state": "GET /api/gamestate (requires auth)",
             "websocket": "WS /ws"
         }
     }))
@@ -135,23 +230,72 @@ async fn health_handler() -> impl IntoResponse {
 /// Handler to submit player code
 async fn submit_code_handler(
     State(state): State<AppState>,
-    Json(payload): Json<CodeSubmission>,
+    request: Request<axum::body::Body>,
 ) -> impl IntoResponse {
-    log::info!("Received code submission from player: {}", payload.player_id);
+    // Get session from request extensions
+    let session = request.extensions().get::<crate::auth::models::Session>().cloned();
+    
+    let player_id = match session {
+        Some(s) => s.username,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(CodeSubmissionResponse {
+                    success: false,
+                    message: "Unauthorized".to_string(),
+                })
+            );
+        }
+    };
+    
+    // Parse request body
+    let bytes = match axum::body::to_bytes(request.into_body(), usize::MAX).await {
+        Ok(b) => b,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(CodeSubmissionResponse {
+                    success: false,
+                    message: format!("Failed to read request body: {}", e),
+                })
+            );
+        }
+    };
+    
+    let payload: CodeSubmission = match serde_json::from_slice(&bytes) {
+        Ok(p) => p,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(CodeSubmissionResponse {
+                    success: false,
+                    message: format!("Invalid JSON: {}", e),
+                })
+            );
+        }
+    };
+    
+    log::info!("Received code submission from player: {}", player_id);
     
     let mut engine = state.script_engine.write().await;
     
-    match engine.submit_code(payload.player_id.clone(), payload.code) {
-        Ok(()) => Json(CodeSubmissionResponse {
-            success: true,
-            message: format!("Code submitted successfully for player {}", payload.player_id),
-        }),
+    match engine.submit_code(player_id.clone(), payload.code) {
+        Ok(()) => (
+            StatusCode::OK,
+            Json(CodeSubmissionResponse {
+                success: true,
+                message: format!("Code submitted successfully for player {}", player_id),
+            })
+        ),
         Err(err) => {
             log::warn!("Code submission failed: {}", err);
-            Json(CodeSubmissionResponse {
-                success: false,
-                message: err,
-            })
+            (
+                StatusCode::BAD_REQUEST,
+                Json(CodeSubmissionResponse {
+                    success: false,
+                    message: err,
+                })
+            )
         }
     }
 }
