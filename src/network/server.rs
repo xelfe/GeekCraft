@@ -20,6 +20,14 @@ use crate::game::world::World;
 use crate::scripting::sandbox::ScriptEngine;
 use crate::auth::AuthService;
 use crate::auth::models::{RegisterRequest, LoginRequest};
+use crate::network::campaign_routes::{
+    start_run_handler,
+    get_run_state_handler,
+    stop_run_handler,
+    save_run_handler,
+    list_saves_handler,
+    load_run_handler,
+};
 
 /// Shared application state
 #[derive(Clone)]
@@ -81,6 +89,13 @@ pub async fn start_server(
         .route("/api/health", get(health_handler))
         .route("/api/auth/register", post(register_handler))
         .route("/api/auth/login", post(login_handler))
+        // Campaign endpoints (no auth required for now)
+        .route("/api/campaign/start", post(start_run_handler))
+        .route("/api/campaign/state", get(get_run_state_handler))
+        .route("/api/campaign/stop", post(stop_run_handler))
+        .route("/api/campaign/save", post(save_run_handler))
+        .route("/api/campaign/saves", get(list_saves_handler))
+        .route("/api/campaign/load", post(load_run_handler))
         // Protected endpoints (auth required)
         .route("/api/auth/logout", post(logout_handler))
         .route("/api/submit", post(submit_code_handler))
@@ -119,6 +134,12 @@ pub async fn start_server(
     log::info!("  - POST /api/submit (requires auth)");
     log::info!("  - GET  /api/players (requires auth)");
     log::info!("  - GET  /api/gamestate (requires auth)");
+    log::info!("  - POST /api/campaign/start");
+    log::info!("  - GET  /api/campaign/state");
+    log::info!("  - POST /api/campaign/stop");
+    log::info!("  - POST /api/campaign/save");
+    log::info!("  - GET  /api/campaign/saves");
+    log::info!("  - POST /api/campaign/load");
 
     // Start the server
     axum::serve(listener, app).await?;
@@ -138,7 +159,8 @@ async fn auth_middleware(
         || path == "/api/health" 
         || path == "/api/auth/register" 
         || path == "/api/auth/login" 
-        || path == "/ws" {
+        || path == "/ws"
+        || path.starts_with("/api/campaign/") {
         return Ok(next.run(request).await);
     }
     
@@ -214,7 +236,13 @@ async fn root_handler() -> impl IntoResponse {
             "submit_code": "POST /api/submit (requires auth)",
             "list_players": "GET /api/players (requires auth)",
             "game_state": "GET /api/gamestate (requires auth)",
-            "websocket": "WS /ws"
+            "websocket": "WS /ws",
+            "campaign_start": "POST /api/campaign/start",
+            "campaign_state": "GET /api/campaign/state",
+            "campaign_stop": "POST /api/campaign/stop",
+            "campaign_save": "POST /api/campaign/save",
+            "campaign_saves": "GET /api/campaign/saves",
+            "campaign_load": "POST /api/campaign/load"
         }
     }))
 }
