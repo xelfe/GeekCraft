@@ -273,14 +273,14 @@ async function httpApiExample() {
     // Step 2: Register a new user (or skip if already registered)
     console.log('\nRegistering user...');
     try {
-        await register('player1', 'password123');
+        await register('player1', 'password123');  // Example credentials - use your own
     } catch (error) {
         console.log('User might already exist, continuing...');
     }
     
     // Step 3: Login to get authentication token
     console.log('\nLogging in...');
-    await login('player1', 'password123');
+    await login('player1', 'password123');  // Example credentials - use your own
     
     if (!authToken) {
         console.error('Login failed, cannot continue');

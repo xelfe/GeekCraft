@@ -67,6 +67,7 @@ GeekCraft uses token-based authentication. You need to register and login before
 curl -X POST http://localhost:3030/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"myplayer","password":"mypassword123"}'
+  # Note: Use your own username and password
 
 # Expected response:
 # {"success":true,"message":"User registered successfully"}
@@ -75,6 +76,7 @@ curl -X POST http://localhost:3030/api/auth/register \
 curl -X POST http://localhost:3030/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"myplayer","password":"mypassword123"}'
+  # Note: Use your own credentials
 
 # Expected response:
 # {"success":true,"token":"YOUR_TOKEN_HERE","username":"myplayer"}

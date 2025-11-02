@@ -68,8 +68,8 @@ async function testHttpApi() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: 'testplayer',
-                    password: 'password123'
+                    username: 'testplayer',  // Example username - use your own
+                    password: 'password123'  // Example password - use your own
                 })
             });
             const registerResult = await registerResponse.json();
@@ -84,8 +84,8 @@ async function testHttpApi() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                username: 'testplayer',
-                password: 'password123'
+                username: 'testplayer',  // Example username - use your own
+                password: 'password123'  // Example password - use your own
             })
         });
         const loginResult = await loginResponse.json();

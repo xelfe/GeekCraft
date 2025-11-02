@@ -263,11 +263,13 @@ Using curl:
 curl -X POST http://localhost:3030/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username": "myplayer", "password": "mypassword123"}'
+  # Note: Use your own username and password
 
 # Login to get authentication token
 curl -X POST http://localhost:3030/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "myplayer", "password": "mypassword123"}'
+  # Note: Use your own credentials
 
 # Response includes your token:
 # {"success":true,"token":"YOUR_TOKEN_HERE","username":"myplayer"}
