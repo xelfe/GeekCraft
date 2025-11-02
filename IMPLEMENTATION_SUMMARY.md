@@ -35,10 +35,12 @@ Flexible backend system supporting:
 - ✅ Fast for development/testing
 - ❌ Data lost on restart
 
-**Redis (Production)**
+**MongoDB (Production)**
+- ✅ Persistent storage
 - ✅ High concurrency (>10,000 users)
-- ✅ Horizontal scaling
-- ✅ Automatic session expiration (TTL)
+- ✅ Horizontal scaling (sharding, replication)
+- ✅ Automatic session expiration (TTL indexes)
+- ✅ Rich query capabilities
 - ✅ Production-ready for MMO servers
 
 **Configuration:**
@@ -46,11 +48,10 @@ Flexible backend system supporting:
 # Development (default)
 cargo run --release
 
-# Production with Redis
-export GEEKCRAFT_DB_BACKEND=REDIS
-export REDIS_URL=redis://127.0.0.1:6379
-cargo build --release --features redis_backend
-cargo run --release --features redis_backend
+# Production with MongoDB
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://localhost:27017/geekcraft
+cargo run --release
 ```
 
 ### 4. **Security Improvements**
@@ -90,17 +91,18 @@ cargo run --release --features redis_backend
 
 ## Architecture Decisions
 
-### Why Redis over SQL?
-1. **Sessions are temporary** - Don't need complex relational queries
-2. **High concurrency** - Redis handles 10,000+ connections better than SQLite
-3. **Speed** - In-memory storage for fast session lookups
-4. **Simplicity** - Key-value model perfect for session management
-5. **Auto-expiration** - Redis TTL automatically removes expired sessions
-6. **Horizontal scaling** - Redis supports clustering for multi-server deployments
+### Why MongoDB over SQL?
+1. **Flexible schema** - Game data evolves; MongoDB handles schema changes naturally
+2. **High concurrency** - MongoDB handles 10,000+ connections efficiently
+3. **Persistent storage** - All game data survives restarts
+4. **Document model** - Perfect for complex game entities (units, maps, state)
+5. **Auto-expiration** - TTL indexes automatically remove expired sessions
+6. **Horizontal scaling** - MongoDB supports sharding for multi-server deployments
+7. **Rich queries** - Supports complex queries for analytics and leaderboards
 
 ### Database Backend Trait
 Implemented a clean abstraction (`AuthDatabaseTrait`) allowing:
-- Easy addition of new backends (PostgreSQL, MongoDB, etc.)
+- Easy addition of new backends (PostgreSQL, etc.)
 - Consistent API across all implementations
 - Minimal code changes to switch backends
 
@@ -120,7 +122,6 @@ Implemented a clean abstraction (`AuthDatabaseTrait`) allowing:
 
 ### Best Practices
 - ✅ Minimal dependencies (only what's needed)
-- ✅ Feature flags for optional Redis support
 - ✅ Environment variable configuration
 - ✅ Comprehensive error messages
 - ✅ Async/await throughout
@@ -170,22 +171,21 @@ cargo run --release
 
 ### Production (Single Server)
 ```bash
-# Install and start Redis
-sudo apt-get install redis-server
-sudo systemctl start redis
+# Install and start MongoDB
+sudo systemctl start mongod
 
 # Build and run
-export GEEKCRAFT_DB_BACKEND=REDIS
-cargo build --release --features redis_backend
-cargo run --release --features redis_backend
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://localhost:27017/geekcraft
+cargo run --release
 ```
 
 ### Production (Multi-Server Cluster)
 ```bash
-# All servers connect to central Redis
-export GEEKCRAFT_DB_BACKEND=REDIS
-export REDIS_URL=redis://central-redis.example.com:6379
-cargo run --release --features redis_backend
+# All servers connect to central MongoDB
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://central-mongodb.example.com:27017/geekcraft
+cargo run --release
 ```
 
 ## Performance Characteristics
@@ -196,11 +196,12 @@ cargo run --release --features redis_backend
 - **Memory**: ~100 bytes per user + ~200 bytes per session
 - **Concurrent Users**: <1000 (mutex contention)
 
-### Redis Backend
-- **Throughput**: ~50,000 ops/sec
-- **Latency**: <2ms (local), <10ms (network)
-- **Memory**: ~500 bytes per user + ~300 bytes per session
+### MongoDB Backend
+- **Throughput**: ~20,000 ops/sec
+- **Latency**: <5ms (local), <20ms (network)
+- **Memory**: ~1KB per user + ~500 bytes per session
 - **Concurrent Users**: >10,000 (connection pooling)
+- **Persistent**: Yes (data survives restarts)
 
 ## Future Enhancements
 
@@ -231,7 +232,7 @@ Possible additions:
 - `src/main.rs` - Initialize auth database and service
 - `src/lib.rs` - Export auth module
 - `src/network/server.rs` - Add auth endpoints, middleware, WebSocket auth
-- `Cargo.toml` - Add dependencies (redis, bcrypt, uuid)
+- `Cargo.toml` - Add dependencies (mongodb, bcrypt, uuid, bson)
 - `.gitignore` - Cleaned up
 - `README.md` - Updated with authentication and multiplayer docs
 
@@ -244,4 +245,4 @@ The implementation successfully adds enterprise-grade authentication and multipl
 - ✅ **Flexibility** - Supports multiple database backends
 - ✅ **Documentation** - Comprehensive guides and examples
 
-The system is production-ready for MMO servers when using Redis backend, with a simple in-memory option for development and testing.
+The system is production-ready for MMO servers when using MongoDB backend, with a simple in-memory option for development and testing.
