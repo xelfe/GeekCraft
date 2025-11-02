@@ -1,66 +1,66 @@
-# GeekCraft - Référence API JavaScript
+# GeekCraft - JavaScript API Reference
 
-## Table des matières
+## Table of Contents
 - [Introduction](#introduction)
-- [Structure d'un Bot](#structure-dun-bot)
-- [API GameState](#api-gamestate)
-- [API Unit](#api-unit)
-- [API Structure](#api-structure)
-- [API Resource](#api-resource)
-- [Événements](#événements)
-- [Exemples](#exemples)
+- [Bot Structure](#bot-structure)
+- [GameState API](#gamestate-api)
+- [Unit API](#unit-api)
+- [Structure API](#structure-api)
+- [Resource API](#resource-api)
+- [Events](#events)
+- [Examples](#examples)
 
 ---
 
 ## Introduction
 
-GeekCraft permet aux joueurs de contrôler leurs unités et bases via une API JavaScript. Votre bot est une classe JavaScript qui répond aux événements du jeu et contrôle les unités via l'état du jeu (GameState).
+GeekCraft allows players to control their units and bases via a JavaScript API. Your bot is a JavaScript class that responds to game events and controls units through the game state (GameState).
 
 ---
 
-## Structure d'un Bot
+## Bot Structure
 
-Votre bot doit être une classe JavaScript exportée avec les méthodes suivantes :
+Your bot must be an exported JavaScript class with the following methods:
 
 ```javascript
 class MyBot {
     constructor() {
-        // Initialisation de votre bot
+        // Initialize your bot
         this.name = "MyBot";
         this.version = "1.0.0";
     }
 
     onInit() {
-        // Appelé au démarrage du jeu
+        // Called at game startup
     }
 
     onTick(gameState) {
-        // Appelé à chaque tick (boucle principale)
-        // C'est ici que vous implémentez votre stratégie
+        // Called every tick (main loop)
+        // This is where you implement your strategy
     }
 
     onUnitCreated(unit) {
-        // Appelé quand une unité est créée
+        // Called when a unit is created
     }
 
     onUnitDestroyed(unit) {
-        // Appelé quand une unité est détruite
+        // Called when a unit is destroyed
     }
 
     onResourceCollected(unit, resource, amount) {
-        // Appelé quand des ressources sont collectées
+        // Called when resources are collected
     }
 
     onStructureBuilt(structure) {
-        // Appelé quand une structure est construite
+        // Called when a structure is built
     }
 
     onUnitAttack(attacker, target) {
-        // Appelé lors d'une attaque
+        // Called during an attack
     }
 
     onUnitDamaged(unit, damage) {
-        // Appelé quand une unité subit des dégâts
+        // Called when a unit takes damage
     }
 }
 
@@ -69,66 +69,66 @@ module.exports = MyBot;
 
 ---
 
-## API GameState
+## GameState API
 
-L'objet `gameState` est passé à la méthode `onTick()` et fournit toutes les informations sur l'état actuel du jeu.
+The `gameState` object is passed to the `onTick()` method and provides all information about the current game state.
 
-### Gestion des Unités
+### Unit Management
 
 #### `gameState.getMyUnits()`
-Retourne un tableau de toutes vos unités.
+Returns an array of all your units.
 
 ```javascript
 const myUnits = gameState.getMyUnits();
-console.log(`J'ai ${myUnits.length} unités`);
+console.log(`I have ${myUnits.length} units`);
 ```
 
-**Retour :** `Unit[]`
+**Returns:** `Unit[]`
 
 ---
 
 #### `gameState.getEnemyUnits()`
-Retourne un tableau de toutes les unités ennemies visibles.
+Returns an array of all visible enemy units.
 
 ```javascript
 const enemies = gameState.getEnemyUnits();
 if (enemies.length > 0) {
-    console.log("Ennemis détectés !");
+    console.log("Enemies detected!");
 }
 ```
 
-**Retour :** `Unit[]`
+**Returns:** `Unit[]`
 
 ---
 
 #### `gameState.getAllUnits()`
-Retourne toutes les unités dans le jeu (alliées et ennemies).
+Returns all units in the game (friendly and enemy).
 
-**Retour :** `Unit[]`
+**Returns:** `Unit[]`
 
 ---
 
 #### `gameState.getUnitById(id)`
-Récupère une unité spécifique par son ID.
+Retrieves a specific unit by its ID.
 
-**Paramètres :**
-- `id` (string) : L'identifiant unique de l'unité
+**Parameters:**
+- `id` (string) : The unit's unique identifier
 
-**Retour :** `Unit | null`
+**Returns:** `Unit | null`
 
 ---
 
-### Gestion des Ressources
+### Resource Management
 
 #### `gameState.getMyResources()`
-Retourne vos ressources actuelles.
+Returns your current resources.
 
 ```javascript
 const resources = gameState.getMyResources();
-console.log(`Minéraux: ${resources.minerals}, Gaz: ${resources.gas}`);
+console.log(`Minerals: ${resources.minerals}, Gas: ${resources.gas}`);
 ```
 
-**Retour :** 
+**Returns:** 
 ```javascript
 {
     minerals: number,
@@ -141,12 +141,12 @@ console.log(`Minéraux: ${resources.minerals}, Gaz: ${resources.gas}`);
 ---
 
 #### `gameState.findNearestResource(position)`
-Trouve la ressource la plus proche d'une position donnée.
+Finds the nearest resource to a given position.
 
-**Paramètres :**
+**Parameters:**
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `Resource | null`
+**Returns:** `Resource | null`
 
 ```javascript
 const resource = gameState.findNearestResource(unit.position);
@@ -158,62 +158,62 @@ if (resource) {
 ---
 
 #### `gameState.getAllResources()`
-Retourne toutes les ressources sur la carte.
+Returns all resources on the map.
 
-**Retour :** `Resource[]`
+**Returns:** `Resource[]`
 
 ---
 
-### Gestion des Bases et Structures
+### Base and Structure Management
 
 #### `gameState.getMyBases()`
-Retourne toutes vos bases.
+Returns all your bases.
 
-**Retour :** `Structure[]`
+**Returns:** `Structure[]`
 
 ---
 
 #### `gameState.getMyMainBase()`
-Retourne votre base principale.
+Returns your main base.
 
-**Retour :** `Structure | null`
+**Returns:** `Structure | null`
 
 ---
 
 #### `gameState.buildStructure(type, position)`
-Construit une structure à une position donnée.
+Builds a structure at a given position.
 
-**Paramètres :**
-- `type` (string) : Type de structure (`'base'`, `'turret'`, `'factory'`)
+**Parameters:**
+- `type` (string) : Structure type (`'base'`, `'turret'`, `'factory'`)
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `boolean` - `true` si la construction a réussi
+**Returns:** `boolean` - `true` if construction succeeded
 
 ```javascript
 const pos = {x: 100, y: 100};
 if (gameState.buildStructure('turret', pos)) {
-    console.log("Tourelle construite !");
+    console.log("Turret built!");
 }
 ```
 
 ---
 
 #### `gameState.isStructureAt(position)`
-Vérifie s'il y a une structure à une position donnée.
+Checks if there is a structure at a given position.
 
-**Paramètres :**
+**Parameters:**
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
-### Informations sur la Carte
+### Map Information
 
 #### `gameState.getMapSize()`
-Retourne les dimensions de la carte.
+Returns the map dimensions.
 
-**Retour :** 
+**Returns:** 
 ```javascript
 {
     width: number,
@@ -224,56 +224,56 @@ Retourne les dimensions de la carte.
 ---
 
 #### `gameState.findExpansionLocation()`
-Trouve un emplacement optimal pour une expansion.
+Finds an optimal location for an expansion.
 
-**Retour :** `{x: number, y: number} | null`
+**Returns:** `{x: number, y: number} | null`
 
 ---
 
 #### `gameState.getPatrolPoints()`
-Retourne des points de patrouille recommandés.
+Returns recommended patrol points.
 
-**Retour :** `Array<{x: number, y: number}>`
+**Returns:** `Array<{x: number, y: number}>`
 
 ---
 
 #### `gameState.isWalkable(position)`
-Vérifie si une position est accessible.
+Checks if a position is accessible.
 
-**Paramètres :**
+**Parameters:**
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
-## API Unit
+## Unit API
 
-Les objets `Unit` représentent les unités du jeu (travailleurs, soldats, etc.).
+`Unit` objects represent game units (workers, soldiers, etc.).
 
-### Propriétés
+### Properties
 
 ```javascript
-unit.id          // string - Identifiant unique
-unit.type        // string - Type d'unité ('worker', 'soldier', etc.)
-unit.position    // {x: number, y: number} - Position actuelle
-unit.health      // number - Points de vie actuels
-unit.maxHealth   // number - Points de vie maximum
-unit.owner       // string - Propriétaire de l'unité
-unit.speed       // number - Vitesse de déplacement
+unit.id          // string - Unique identifier
+unit.type        // string - Unit type ('worker', 'soldier', etc.)
+unit.position    // {x: number, y: number} - Current position
+unit.health      // number - Current health points
+unit.maxHealth   // number - Maximum health points
+unit.owner       // string - Unit owner
+unit.speed       // number - Movement speed
 ```
 
 ---
 
-### Méthodes de Déplacement
+### Movement Methods
 
 #### `unit.moveTo(position)`
-Déplace l'unité vers une position.
+Moves the unit to a position.
 
-**Paramètres :**
+**Parameters:**
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ```javascript
 unit.moveTo({x: 50, y: 100});
@@ -282,34 +282,34 @@ unit.moveTo({x: 50, y: 100});
 ---
 
 #### `unit.stop()`
-Arrête toutes les actions de l'unité.
+Stops all unit actions.
 
-**Retour :** `void`
+**Returns:** `void`
 
 ---
 
 #### `unit.isIdle()`
-Vérifie si l'unité est inactive.
+Checks if the unit is idle.
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ```javascript
 if (unit.isIdle()) {
-    // Assigner une nouvelle tâche
+    // Assign a new task
 }
 ```
 
 ---
 
-### Actions sur les Ressources
+### Resource Actions
 
 #### `unit.harvest(resource)`
-Fait récolter une ressource par l'unité.
+Makes the unit harvest a resource.
 
-**Paramètres :**
-- `resource` (Resource) : La ressource à récolter
+**Parameters:**
+- `resource` (Resource) : The resource to harvest
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ```javascript
 const resource = gameState.findNearestResource(unit.position);
@@ -321,35 +321,35 @@ if (resource) {
 ---
 
 #### `unit.deposit()`
-Dépose les ressources transportées à la base la plus proche.
+Deposits carried resources at the nearest base.
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
 #### `unit.isCarryingResource()`
-Vérifie si l'unité transporte des ressources.
+Checks if the unit is carrying resources.
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
 #### `unit.getCarriedAmount()`
-Retourne la quantité de ressources transportées.
+Returns the amount of resources carried.
 
-**Retour :** `number`
+**Returns:** `number`
 
 ---
 
-### Actions de Combat
+### Combat Actions
 
 #### `unit.attack(target)`
-Attaque une cible (unité ou structure).
+Attacks a target (unit or structure).
 
-**Paramètres :**
-- `target` (Unit | Structure) : La cible à attaquer
+**Parameters:**
+- `target` (Unit | Structure) : The target to attack
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ```javascript
 const enemies = gameState.getEnemyUnits();
@@ -361,34 +361,34 @@ if (enemies.length > 0) {
 ---
 
 #### `unit.defend(position)`
-Met l'unité en position défensive.
+Puts the unit in defensive position.
 
-**Paramètres :**
+**Parameters:**
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
 #### `unit.canAttack(target)`
-Vérifie si l'unité peut attaquer une cible.
+Checks if the unit can attack a target.
 
-**Paramètres :**
+**Parameters:**
 - `target` (Unit | Structure)
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
-### Informations
+### Information
 
 #### `unit.getDistanceTo(position)`
-Calcule la distance jusqu'à une position.
+Calculates the distance to a position.
 
-**Paramètres :**
+**Parameters:**
 - `position` (Object) : `{x: number, y: number}`
 
-**Retour :** `number`
+**Returns:** `number`
 
 ```javascript
 const dist = unit.getDistanceTo({x: 100, y: 100});
@@ -397,30 +397,30 @@ console.log(`Distance: ${dist}`);
 
 ---
 
-## API Structure
+## Structure API
 
-Les structures incluent les bases, tourelles, usines, etc.
+Structures include bases, turrets, factories, etc.
 
-### Propriétés
+### Properties
 
 ```javascript
-structure.id          // string - Identifiant unique
-structure.type        // string - Type de structure
+structure.id          // string - Unique identifier
+structure.type        // string - Structure type
 structure.position    // {x: number, y: number}
 structure.health      // number
 structure.maxHealth   // number
 structure.owner       // string
 ```
 
-### Méthodes
+### Methods
 
 #### `structure.produceUnit(unitType)`
-Produit une nouvelle unité (si c'est une base ou usine).
+Produces a new unit (if it's a base or factory).
 
-**Paramètres :**
-- `unitType` (string) : Type d'unité à produire
+**Parameters:**
+- `unitType` (string) : Unit type to produce
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ```javascript
 const base = gameState.getMyMainBase();
@@ -432,56 +432,56 @@ if (base.canProduceUnit()) {
 ---
 
 #### `structure.canProduceUnit()`
-Vérifie si la structure peut produire une unité.
+Checks if the structure can produce a unit.
 
-**Retour :** `boolean`
+**Returns:** `boolean`
 
 ---
 
-## API Resource
+## Resource API
 
-Représente une ressource sur la carte.
+Represents a resource on the map.
 
-### Propriétés
+### Properties
 
 ```javascript
 resource.id        // string
-resource.type      // string - 'minerals' ou 'gas'
+resource.type      // string - 'minerals' or 'gas'
 resource.position  // {x: number, y: number}
-resource.amount    // number - Quantité restante
+resource.amount    // number - Remaining quantity
 ```
 
 ---
 
-## Événements
+## Events
 
-### Cycle de Vie
+### Lifecycle
 
-1. **`onInit()`** - Appelé une fois au démarrage
-2. **`onTick(gameState)`** - Appelé à chaque frame (60 FPS)
-3. Événements spécifiques déclenchés selon les actions
+1. **`onInit()`** - Called once at startup
+2. **`onTick(gameState)`** - Called every frame (60 FPS)
+3. Specific events triggered based on actions
 
-### Événements d'Unités
+### Unit Events
 
-- **`onUnitCreated(unit)`** - Nouvelle unité créée
-- **`onUnitDestroyed(unit)`** - Unité détruite
-- **`onUnitAttack(attacker, target)`** - Attaque effectuée
-- **`onUnitDamaged(unit, damage)`** - Unité endommagée
+- **`onUnitCreated(unit)`** - New unit created
+- **`onUnitDestroyed(unit)`** - Unit destroyed
+- **`onUnitAttack(attacker, target)`** - Attack performed
+- **`onUnitDamaged(unit, damage)`** - Unit damaged
 
-### Événements de Ressources
+### Resource Events
 
-- **`onResourceCollected(unit, resource, amount)`** - Ressources collectées
+- **`onResourceCollected(unit, resource, amount)`** - Resources collected
 
-### Événements de Structures
+### Structure Events
 
-- **`onStructureBuilt(structure)`** - Structure construite
-- **`onStructureDestroyed(structure)`** - Structure détruite
+- **`onStructureBuilt(structure)`** - Structure built
+- **`onStructureDestroyed(structure)`** - Structure destroyed
 
 ---
 
-## Exemples
+## Examples
 
-### Exemple 1 : Bot Récolteur Simple
+### Example 1: Simple Harvester Bot
 
 ```javascript
 class HarvesterBot {
@@ -508,7 +508,7 @@ class HarvesterBot {
 }
 ```
 
-### Exemple 2 : Bot Militaire
+### Example 2: Military Bot
 
 ```javascript
 class MilitaryBot {
@@ -519,7 +519,7 @@ class MilitaryBot {
         const enemies = gameState.getEnemyUnits();
         
         if (enemies.length > 0) {
-            // Attaquer en groupe
+            // Attack as a group
             const target = enemies[0];
             for (const soldier of soldiers) {
                 if (soldier.canAttack(target)) {
@@ -527,7 +527,7 @@ class MilitaryBot {
                 }
             }
         } else {
-            // Patrouiller
+            // Patrol
             const points = gameState.getPatrolPoints();
             soldiers.forEach((s, i) => {
                 s.moveTo(points[i % points.length]);
@@ -537,7 +537,7 @@ class MilitaryBot {
 }
 ```
 
-### Exemple 3 : Bot Économique
+### Example 3: Economy Bot
 
 ```javascript
 class EconomyBot {
@@ -550,7 +550,7 @@ class EconomyBot {
         const workers = gameState.getMyUnits()
             .filter(u => u.type === 'worker');
         
-        // Produire des travailleurs
+        // Produce workers
         if (workers.length < this.targetWorkers && 
             resources.minerals >= 50) {
             const base = gameState.getMyMainBase();
@@ -559,7 +559,7 @@ class EconomyBot {
             }
         }
         
-        // Construire une expansion
+        // Build an expansion
         if (resources.minerals >= 400) {
             const location = gameState.findExpansionLocation();
             if (location) {
@@ -572,46 +572,46 @@ class EconomyBot {
 
 ---
 
-## Conseils et Bonnes Pratiques
+## Tips and Best Practices
 
 ### Performance
-- Évitez de créer de nouveaux objets à chaque tick
-- Utilisez des caches pour les calculs coûteux
-- Limitez les boucles imbriquées
+- Avoid creating new objects every tick
+- Use caches for expensive calculations
+- Limit nested loops
 
-### Stratégie
-- Utilisez des rôles pour organiser vos unités
-- Équilibrez collecte de ressources et production d'unités
-- Groupez les unités pour des attaques plus fortes
-- Pensez à l'expansion pour augmenter les ressources
+### Strategy
+- Use roles to organize your units
+- Balance resource collection and unit production
+- Group units for stronger attacks
+- Think about expansion to increase resources
 
-### Débogage
-- Utilisez `console.log()` pour déboguer
-- Vérifiez toujours les valeurs `null` avant utilisation
-- Testez vos bots contre différents adversaires
+### Debugging
+- Use `console.log()` for debugging
+- Always check for `null` values before use
+- Test your bots against different opponents
 
 ---
 
-## Limites et Restrictions
+## Limits and Restrictions
 
-### Sandbox JavaScript
-- Pas d'accès au système de fichiers
-- Pas d'accès réseau
-- Temps d'exécution limité par tick (100ms max)
-- Mémoire limitée (128 MB)
+### JavaScript Sandbox
+- No file system access
+- No network access
+- Execution time limited per tick (100ms max)
+- Limited memory (128 MB)
 
 ### API
-- Maximum 100 commandes par tick
-- Certaines actions coûtent des ressources
-- Les unités ont une portée d'action limitée
+- Maximum 100 commands per tick
+- Some actions cost resources
+- Units have limited action range
 
 ---
 
 ## Support
 
-Pour plus d'aide :
-- Consultez les exemples dans `/examples`
-- Visitez le wiki du projet
-- Rejoignez la communauté sur Discord
+For more help:
+- Check the examples in `/examples`
+- Visit the project wiki
+- Join the community on Discord
 
-**Bon codage et amusez-vous bien ! 🎮**
+**Happy coding and have fun! 🎮**

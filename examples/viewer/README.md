@@ -1,93 +1,93 @@
-# GeekCraft Viewer - Exemple de Client de Visualisation
+# GeekCraft Viewer - Visualization Client Example
 
-Ce viewer HTML est un exemple basique de client de visualisation pour GeekCraft. Il démontre comment se connecter au serveur de jeu et afficher l'état du jeu en temps réel.
+This HTML viewer is a basic example of a visualization client for GeekCraft. It demonstrates how to connect to the game server and display the game state in real-time.
 
-## Caractéristiques
+## Features
 
-- ✅ Connexion WebSocket au serveur
-- ✅ Affichage en temps réel du monde de jeu
-- ✅ Canvas HTML5 pour le rendu
-- ✅ Interface utilisateur responsive
-- ✅ Console de logs intégrée
-- ✅ Contrôles de caméra (zoom, défilement)
-- ✅ Sélection d'unités
-- ✅ Informations détaillées sur les joueurs et unités
+- ✅ WebSocket connection to the server
+- ✅ Real-time display of the game world
+- ✅ HTML5 canvas for rendering
+- ✅ Responsive user interface
+- ✅ Integrated log console
+- ✅ Camera controls (zoom, scroll)
+- ✅ Unit selection
+- ✅ Detailed information on players and units
 
-## Utilisation
+## Usage
 
-### 1. Lancer le serveur GeekCraft
+### 1. Start the GeekCraft Server
 
 ```bash
 cd GeekCraft
 cargo run --release
 ```
 
-Le serveur démarre par défaut sur `ws://localhost:3030/ws`
+The server starts by default on `ws://localhost:3030/ws`
 
-### 2. Ouvrir le viewer
+### 2. Open the Viewer
 
-Ouvrez simplement `index.html` dans votre navigateur web :
+Simply open `index.html` in your web browser:
 
 ```bash
 cd examples/viewer
-# Méthode 1 : Double-cliquez sur index.html
-# Méthode 2 : Utilisez un serveur HTTP local
+# Method 1: Double-click on index.html
+# Method 2: Use a local HTTP server
 python3 -m http.server 8000
-# Puis ouvrez http://localhost:8000
+# Then open http://localhost:8000
 ```
 
-### 3. Se connecter
+### 3. Connect
 
-1. Vérifiez que l'URL du serveur est correcte (par défaut : `ws://localhost:3030/ws`)
-2. Cliquez sur le bouton "Connecter"
-3. Le viewer affichera l'état du jeu en temps réel
+1. Verify that the server URL is correct (default: `ws://localhost:3030/ws`)
+2. Click the "Connect" button
+3. The viewer will display the game state in real-time
 
-## Contrôles
+## Controls
 
-### Caméra
-- **Zoom +/- :** Boutons dans la barre de contrôle
-- **Molette de la souris :** Zoomer/dézoomer
-- **Centrer :** Réinitialiser la vue
+### Camera
+- **Zoom +/- :** Buttons in the control bar
+- **Mouse wheel :** Zoom in/out
+- **Center :** Reset the view
 
-### Sélection
-- **Clic sur une unité :** Voir ses détails dans le panneau de droite
-- **Clic ailleurs :** Désélectionner
+### Selection
+- **Click on a unit :** See its details in the right panel
+- **Click elsewhere :** Deselect
 
 ### Console
-- **Effacer :** Vider les logs de la console
+- **Clear :** Empty the console logs
 
-## Structure du Code
+## Code Structure
 
 ### index.html
-Interface utilisateur principale avec :
-- Header (titre, statut de connexion)
-- Sidebar gauche (configuration, infos du jeu, joueurs)
-- Zone centrale (canvas de jeu, contrôles)
-- Panneau droit (détails de sélection)
-- Console en bas (logs)
+Main user interface with:
+- Header (title, connection status)
+- Left sidebar (configuration, game info, players)
+- Central area (game canvas, controls)
+- Right panel (selection details)
+- Bottom console (logs)
 
 ### viewer.js
-Logique principale du viewer :
-- **GeekCraftViewer** : Classe principale
-- **WebSocket** : Communication avec le serveur
-- **Rendu Canvas** : Affichage du jeu
-- **Gestion des événements** : Interactions utilisateur
+Main viewer logic:
+- **GeekCraftViewer** : Main class
+- **WebSocket** : Communication with the server
+- **Canvas Rendering** : Game display
+- **Event Management** : User interactions
 
 ### style.css
-Styles modernes avec :
+Modern styles with:
 - Dark theme
-- Layout responsive
-- Animations subtiles
-- Scrollbars personnalisées
+- Responsive layout
+- Subtle animations
+- Custom scrollbars
 
-## Protocol WebSocket
+## WebSocket Protocol
 
-Le viewer communique avec le serveur via WebSocket en JSON :
+The viewer communicates with the server via WebSocket in JSON:
 
-### Messages entrants (serveur → client)
+### Incoming Messages (server → client)
 
 ```javascript
-// État complet du jeu
+// Complete game state
 {
     "type": "gameState",
     "data": {
@@ -99,7 +99,7 @@ Le viewer communique avec le serveur via WebSocket en JSON :
     }
 }
 
-// Mise à jour incrémentale
+// Incremental update
 {
     "type": "gameUpdate",
     "data": {
@@ -108,7 +108,7 @@ Le viewer communique avec le serveur via WebSocket en JSON :
     }
 }
 
-// Événement de jeu
+// Game event
 {
     "type": "event",
     "data": {
@@ -118,79 +118,79 @@ Le viewer communique avec le serveur via WebSocket en JSON :
 }
 ```
 
-### Messages sortants (client → serveur)
+### Outgoing Messages (client → server)
 
 ```javascript
-// Demander l'état du jeu
+// Request game state
 {
     "type": "getGameState"
 }
 
-// Changer la vitesse du jeu
+// Change game speed
 {
     "type": "setSpeed",
     "speed": 2.0
 }
 ```
 
-## Personnalisation
+## Customization
 
-### Modifier l'apparence
+### Modify the Appearance
 
-Éditez `style.css` pour changer les couleurs, tailles, etc.
+Edit `style.css` to change colors, sizes, etc.
 
 ```css
 :root {
-    --primary-color: #2196F3;  /* Couleur principale */
-    --bg-dark: #1a1a1a;        /* Fond sombre */
+    --primary-color: #2196F3;  /* Primary color */
+    --bg-dark: #1a1a1a;        /* Dark background */
     /* ... */
 }
 ```
 
-### Ajouter des fonctionnalités
+### Add Features
 
-Le viewer est conçu pour être facilement extensible :
+The viewer is designed to be easily extensible:
 
-1. **Nouveau type d'entité** : Ajoutez une méthode `render[Type]()` dans `viewer.js`
-2. **Nouvelle commande** : Ajoutez un bouton et utilisez `sendCommand()`
-3. **Nouveau panneau** : Modifiez `index.html` et `style.css`
+1. **New entity type** : Add a `render[Type]()` method in `viewer.js`
+2. **New command** : Add a button and use `sendCommand()`
+3. **New panel** : Modify `index.html` and `style.css`
 
-### Exemple : Ajouter un bouton pause
+### Example: Add a Pause Button
 
 ```html
-<!-- Dans index.html -->
+<!-- In index.html -->
 <button id="pause-btn" class="btn btn-sm">⏸️ Pause</button>
 ```
 
 ```javascript
-// Dans viewer.js, méthode setupEventListeners()
+// In viewer.js, setupEventListeners() method
 document.getElementById('pause-btn').addEventListener('click', () => {
     this.sendCommand({ type: 'pause' });
 });
 ```
 
-## Créer votre propre viewer
+## Create Your Own Viewer
 
-Ce viewer HTML est juste un exemple ! Vous pouvez créer votre propre client avec :
+This HTML viewer is just an example! You can create your own client with:
 
-### Technologies Web
-- **React/Vue/Angular** : Applications web modernes
-- **Three.js** : Rendu 3D dans le navigateur
-- **Phaser** : Framework de jeu 2D
-- **PixiJS** : Rendu 2D haute performance
+### Web Technologies
+- **React/Vue/Angular** : Modern web applications
+- **Three.js** : 3D rendering in the browser
+- **Phaser** : 2D game framework
+- **PixiJS** : High-performance 2D rendering
 
-### Technologies Desktop
-- **Electron** : Application desktop web
-- **Unity** : Moteur de jeu 3D
-- **Godot** : Moteur de jeu open-source
-- **Tauri** : Alternative légère à Electron
+### Desktop Technologies
+- **Electron** : Desktop web application
+- **Unity** : 3D game engine
+- **Godot** : Open-source game engine
+- **Tauri** : Lightweight alternative to Electron
 
-### Technologies Terminal
-- **Blessed/Ink** (Node.js) : Interface terminal
-- **Rich** (Python) : Terminal avec couleurs
-- **Cursive** (Rust) : TUI en Rust
+### Terminal Technologies
+- **Blessed/Ink** (Node.js) : Terminal interface
+- **Rich** (Python) : Terminal with colors
+- **Cursive** (Rust) : TUI in Rust
 
-### Exemple minimaliste
+### Minimal Example
 
 ```javascript
 // viewer_minimal.js
@@ -200,7 +200,7 @@ ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     console.log('Game state:', data);
     
-    // Affichez comme vous voulez !
+    // Display as you want!
     // Terminal, canvas, 3D, etc.
 };
 
@@ -211,27 +211,27 @@ ws.onopen = () => {
 
 ## Troubleshooting
 
-### Le viewer ne se connecte pas
-- Vérifiez que le serveur GeekCraft est lancé
-- Vérifiez l'URL WebSocket dans l'interface
-- Regardez la console du navigateur (F12) pour les erreurs
+### The Viewer Won't Connect
+- Check that the GeekCraft server is running
+- Check the WebSocket URL in the interface
+- Look at the browser console (F12) for errors
 
-### Rien ne s'affiche sur le canvas
-- Vérifiez que vous recevez des données (console en bas)
-- Vérifiez que le serveur envoie des données de jeu
-- Ajustez le zoom si les éléments sont hors de vue
+### Nothing Displays on the Canvas
+- Check that you are receiving data (bottom console)
+- Check that the server is sending game data
+- Adjust the zoom if elements are out of view
 
-### Performance faible
-- Réduisez la fréquence de mise à jour du serveur
-- Optimisez le rendu (ne redessinez que ce qui change)
-- Utilisez un canvas plus petit
+### Poor Performance
+- Reduce the server update frequency
+- Optimize rendering (only redraw what changes)
+- Use a smaller canvas
 
-## Ressources
+## Resources
 
 - [WebSocket API MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 - [Canvas API MDN](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 - [GeekCraft API Reference](../API_REFERENCE.md)
 
-## Licence
+## License
 
-Ce viewer d'exemple est fourni sous licence MIT, comme le reste du projet GeekCraft.
+This example viewer is provided under the MIT license, like the rest of the GeekCraft project.
