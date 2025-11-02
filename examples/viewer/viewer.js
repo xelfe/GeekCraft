@@ -238,8 +238,8 @@ class GeekCraftViewer {
         // DYNAMIC: Display player IDs from server
         // PLACEHOLDER: Resources and unit counts are not yet implemented
         playersList.innerHTML = this.gameState.players.map((playerId, index) => {
-            // Generate a simple color based on player index
-            const hue = (index * 137) % 360; // Golden angle for color distribution
+            // Generate a simple color based on player index using golden angle
+            const hue = (index * 137.507764) % 360; // Golden angle for better color distribution
             const color = `hsl(${hue}, 70%, 60%)`;
             
             return `
