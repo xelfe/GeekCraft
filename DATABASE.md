@@ -536,7 +536,12 @@ mongos --configdb configRS/localhost:27019 --port 27017
     roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase"]
   })
   ```
-- Use TLS/SSL for network encryption
+- Use TLS/SSL for network encryption:
+  ```bash
+  # In MongoDB connection string
+  mongodb://localhost:27017/geekcraft?tls=true&tlsCertificateKeyFile=/path/to/cert.pem
+  ```
+- **Important**: Current implementation uses MongoDB driver v2.8 which has a known TLS certificate validation issue. For production with TLS, ensure proper certificate configuration or consider upgrading to driver v3.2.5+ (requires code migration).
 - Configure firewall to restrict MongoDB port (27017)
 - Enable audit logging for compliance
 
