@@ -2,6 +2,9 @@
 /target/
 Cargo.lock
 
+# Campaign saves
+/saves/
+
 # IDE
 .idea/
 .vscode/
