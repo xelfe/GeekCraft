@@ -1,12 +1,12 @@
-//! Database abstraction for authentication
+//! Database abstraction for authentication and game data
 //! 
 //! Provides a trait-based abstraction that supports multiple database backends:
 //! - **In-Memory**: Fast, for testing and development (data lost on restart)
-//! - **Redis**: Fast NoSQL, perfect for production MMO servers (requires Redis server)
+//! - **MongoDB**: Persistent NoSQL, perfect for production MMO servers (requires MongoDB server)
 //! 
 //! **Recommendations:**
 //! - **Development/Testing**: Use In-Memory
-//! - **Production MMO**: Use Redis (horizontal scaling, high concurrency)
+//! - **Production MMO**: Use MongoDB (persistent storage, horizontal scaling, high concurrency)
 //! 
 //! Users can easily switch between backends by changing configuration.
 
@@ -31,12 +31,11 @@ pub enum DatabaseBackend {
     /// - Use case: Development, testing
     InMemory,
     
-    /// Redis database (recommended for production MMO servers)
-    /// - Pros: Very fast (in-memory), horizontal scaling, high concurrency
-    /// - Cons: Requires Redis server, data in RAM
-    /// - Use case: Production MMO, multiple servers, high concurrent users
-    #[cfg(feature = "redis_backend")]
-    Redis(String), // Connection string: "redis://127.0.0.1:6379"
+    /// MongoDB database (recommended for production MMO servers)
+    /// - Pros: Persistent storage, horizontal scaling, high concurrency, flexible schema
+    /// - Cons: Requires MongoDB server
+    /// - Use case: Production MMO, multiple servers, persistent game data
+    MongoDB(String), // Connection string: "mongodb://localhost:27017"
 }
 
 /// Authentication database trait
@@ -60,9 +59,10 @@ impl AuthDatabase {
     pub fn new(backend: DatabaseBackend) -> Result<Self, String> {
         let db: Box<dyn AuthDatabaseTrait> = match backend {
             DatabaseBackend::InMemory => Box::new(InMemoryBackend::new()),
-            
-            #[cfg(feature = "redis_backend")]
-            DatabaseBackend::Redis(url) => Box::new(RedisBackend::new(&url)?),
+            DatabaseBackend::MongoDB(url) => {
+                // MongoDB backend needs async initialization, we'll use a blocking approach here
+                Box::new(MongoBackend::new(&url)?)
+            }
         };
         
         Ok(AuthDatabase { backend: db })
@@ -205,176 +205,324 @@ impl AuthDatabaseTrait for InMemoryBackend {
 }
 
 // ============================================================================
-// Redis Backend Implementation (NoSQL for Production MMO)
+// MongoDB Backend Implementation (NoSQL for Production MMO)
 // ============================================================================
 
-#[cfg(feature = "redis_backend")]
-use redis::{Client, Commands, Connection as RedisConnection};
+use mongodb::{
+    Client, 
+    bson::{doc, Document, to_document, from_document},
+    options::{ClientOptions, IndexOptions},
+    IndexModel,
+};
+use std::time::Duration;
 
-#[cfg(feature = "redis_backend")]
-struct RedisBackend {
+struct MongoBackend {
     client: Client,
+    db_name: String,
 }
 
-#[cfg(feature = "redis_backend")]
-impl RedisBackend {
-    fn new(redis_url: &str) -> Result<Self, String> {
-        let client = Client::open(redis_url)
-            .map_err(|e| format!("Failed to connect to Redis: {}", e))?;
+// Note: This implementation creates a new runtime for each operation to maintain
+// compatibility with the synchronous AuthDatabaseTrait. For production use with
+// high throughput, consider refactoring the trait to be async or using a shared
+// runtime via tokio::runtime::Handle::current().block_on().
+
+impl MongoBackend {
+    fn new(mongodb_url: &str) -> Result<Self, String> {
+        // Extract database name from URL or use default
+        let db_name = mongodb_url
+            .split('/')
+            .last()
+            .and_then(|s| s.split('?').next())
+            .filter(|s| !s.is_empty())
+            .unwrap_or("geekcraft")
+            .to_string();
         
-        // Test connection
-        let mut conn = client.get_connection()
-            .map_err(|e| format!("Failed to get Redis connection: {}", e))?;
+        // Create a runtime and initialize MongoDB client
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
         
-        let _: () = redis::cmd("PING")
-            .query(&mut conn)
-            .map_err(|e| format!("Redis PING failed: {}", e))?;
+        let (client, db_name_final) = rt.block_on(async {
+            // Parse MongoDB connection string
+            let client_options = ClientOptions::parse(mongodb_url)
+                .await
+                .map_err(|e| format!("Failed to parse MongoDB URL: {}", e))?;
+            
+            // Create MongoDB client
+            let client = Client::with_options(client_options)
+                .map_err(|e| format!("Failed to create MongoDB client: {}", e))?;
+            
+            // Test connection
+            client
+                .database(&db_name)
+                .run_command(doc! { "ping": 1 }, None)
+                .await
+                .map_err(|e| format!("MongoDB connection test failed: {}", e))?;
+            
+            let db = client.database(&db_name);
+            let sessions_collection = db.collection::<Document>("sessions");
+            
+            // Create TTL index for sessions (auto-expire after expires_at)
+            let index_options = IndexOptions::builder()
+                .expire_after(Duration::from_secs(0))
+                .build();
+            
+            let index_model = IndexModel::builder()
+                .keys(doc! { "expires_at": 1 })
+                .options(index_options)
+                .build();
+            
+            sessions_collection
+                .create_index(index_model, None)
+                .await
+                .map_err(|e| format!("Failed to create TTL index: {}", e))?;
+            
+            // Create unique index on username
+            let users_collection = db.collection::<Document>("users");
+            let username_index = IndexModel::builder()
+                .keys(doc! { "username": 1 })
+                .options(
+                    IndexOptions::builder()
+                        .unique(true)
+                        .build()
+                )
+                .build();
+            
+            users_collection
+                .create_index(username_index, None)
+                .await
+                .map_err(|e| format!("Failed to create username index: {}", e))?;
+            
+            Ok::<(Client, String), String>((client, db_name))
+        })?;
         
-        Ok(RedisBackend { client })
+        Ok(MongoBackend { client, db_name: db_name_final })
     }
     
-    fn get_conn(&self) -> Result<RedisConnection, String> {
-        self.client.get_connection()
-            .map_err(|e| format!("Failed to get Redis connection: {}", e))
+    fn get_database(&self) -> mongodb::Database {
+        self.client.database(&self.db_name)
     }
 }
 
-#[cfg(feature = "redis_backend")]
-impl AuthDatabaseTrait for RedisBackend {
+impl AuthDatabaseTrait for MongoBackend {
     fn create_user(&self, username: &str, password_hash: &str) -> Result<User, String> {
-        let mut conn = self.get_conn()?;
+        let db = self.get_database();
+        let users_collection = db.collection::<Document>("users");
         
-        // Check if user exists
-        let exists: bool = conn.hexists("users", username)
-            .map_err(|e| format!("Redis error: {}", e))?;
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
         
-        if exists {
-            return Err("Username already exists".to_string());
-        }
-        
-        // Get next user ID
-        let user_id: i64 = conn.incr("next_user_id", 1)
-            .map_err(|e| format!("Redis error: {}", e))?;
-        
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-        
-        let user = User {
-            id: user_id,
-            username: username.to_string(),
-            password_hash: password_hash.to_string(),
-            created_at: now,
-        };
-        
-        // Store user as JSON
-        let user_json = serde_json::to_string(&user)
-            .map_err(|e| format!("Failed to serialize user: {}", e))?;
-        
-        let _: () = conn.hset("users", username, &user_json)
-            .map_err(|e| format!("Redis error: {}", e))?;
-        
-        let _: () = conn.hset("users_by_id", user_id, &user_json)
-            .map_err(|e| format!("Redis error: {}", e))?;
-        
-        Ok(user)
+        rt.block_on(async {
+            // Check if user exists
+            let existing = users_collection
+                .find_one(doc! { "username": username }, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            if existing.is_some() {
+                return Err("Username already exists".to_string());
+            }
+            
+            // Get next user ID using a counter collection
+            let counter_collection = db.collection::<Document>("counters");
+            let result = counter_collection
+                .find_one_and_update(
+                    doc! { "_id": "user_id" },
+                    doc! { "$inc": { "value": 1 } },
+                    mongodb::options::FindOneAndUpdateOptions::builder()
+                        .upsert(true)
+                        .return_document(mongodb::options::ReturnDocument::After)
+                        .build()
+                )
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            let user_id = result
+                .and_then(|doc| doc.get_i64("value").ok())
+                .unwrap_or(1);
+            
+            let now = get_unix_timestamp();
+            
+            let user = User {
+                id: user_id,
+                username: username.to_string(),
+                password_hash: password_hash.to_string(),
+                created_at: now,
+            };
+            
+            // Insert user document
+            let user_doc = to_document(&user)
+                .map_err(|e| format!("Failed to serialize user: {}", e))?;
+            
+            users_collection
+                .insert_one(user_doc, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            Ok(user)
+        })
     }
     
     fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String> {
-        let mut conn = self.get_conn()?;
+        let db = self.get_database();
+        let users_collection = db.collection::<Document>("users");
         
-        let user_json: Option<String> = conn.hget("users", username)
-            .map_err(|e| format!("Redis error: {}", e))?;
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
         
-        match user_json {
-            Some(json) => {
-                let user: User = serde_json::from_str(&json)
-                    .map_err(|e| format!("Failed to deserialize user: {}", e))?;
-                Ok(Some(user))
+        rt.block_on(async {
+            let user_doc = users_collection
+                .find_one(doc! { "username": username }, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            match user_doc {
+                Some(doc) => {
+                    let user: User = from_document(doc)
+                        .map_err(|e| format!("Failed to deserialize user: {}", e))?;
+                    Ok(Some(user))
+                }
+                None => Ok(None),
             }
-            None => Ok(None),
-        }
+        })
     }
     
     fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String> {
-        let mut conn = self.get_conn()?;
+        let db = self.get_database();
+        let users_collection = db.collection::<Document>("users");
+        let sessions_collection = db.collection::<Document>("sessions");
         
-        // Get user to retrieve username
-        let user_json: Option<String> = conn.hget("users_by_id", user_id)
-            .map_err(|e| format!("Redis error: {}", e))?;
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
         
-        let user: User = match user_json {
-            Some(json) => serde_json::from_str(&json)
-                .map_err(|e| format!("Failed to deserialize user: {}", e))?,
-            None => return Err("User not found".to_string()),
-        };
-        
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-        
-        let session = Session {
-            token: token.to_string(),
-            user_id,
-            username: user.username,
-            created_at: now,
-            expires_at,
-        };
-        
-        let session_json = serde_json::to_string(&session)
-            .map_err(|e| format!("Failed to serialize session: {}", e))?;
-        
-        // Calculate TTL (time to live) in seconds
-        let ttl = (expires_at - now) as usize;
-        
-        // Store session with automatic expiration (Redis TTL)
-        let _: () = conn.set_ex(format!("session:{}", token), session_json, ttl)
-            .map_err(|e| format!("Redis error: {}", e))?;
-        
-        Ok(())
+        rt.block_on(async {
+            // Get user to retrieve username
+            let user_doc = users_collection
+                .find_one(doc! { "id": user_id }, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            let user: User = match user_doc {
+                Some(doc) => from_document(doc)
+                    .map_err(|e| format!("Failed to deserialize user: {}", e))?,
+                None => return Err("User not found".to_string()),
+            };
+            
+            let now = get_unix_timestamp();
+            
+            let session = Session {
+                token: token.to_string(),
+                user_id,
+                username: user.username,
+                created_at: now,
+                expires_at,
+            };
+            
+            // Convert expires_at to BSON DateTime for TTL index
+            let session_doc = doc! {
+                "token": &session.token,
+                "user_id": session.user_id,
+                "username": &session.username,
+                "created_at": session.created_at,
+                "expires_at": bson::DateTime::from_millis(expires_at * 1000),
+            };
+            
+            // Insert or update session
+            sessions_collection
+                .update_one(
+                    doc! { "token": token },
+                    doc! { "$set": session_doc },
+                    mongodb::options::UpdateOptions::builder()
+                        .upsert(true)
+                        .build()
+                )
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            Ok(())
+        })
     }
     
     fn get_session(&self, token: &str) -> Result<Option<Session>, String> {
-        let mut conn = self.get_conn()?;
+        let db = self.get_database();
+        let sessions_collection = db.collection::<Document>("sessions");
         
-        let session_json: Option<String> = conn.get(format!("session:{}", token))
-            .map_err(|e| format!("Redis error: {}", e))?;
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
         
-        match session_json {
-            Some(json) => {
-                let session: Session = serde_json::from_str(&json)
-                    .map_err(|e| format!("Failed to deserialize session: {}", e))?;
-                
-                // Redis TTL handles expiration automatically, but double-check
-                let now = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs() as i64;
-                
-                if session.expires_at < now {
-                    let _ = self.delete_session(token);
-                    Ok(None)
-                } else {
-                    Ok(Some(session))
+        rt.block_on(async {
+            let session_doc = sessions_collection
+                .find_one(doc! { "token": token }, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            match session_doc {
+                Some(doc) => {
+                    // Extract expires_at as timestamp
+                    let expires_at = if let Ok(dt) = doc.get_datetime("expires_at") {
+                        dt.timestamp_millis() / 1000
+                    } else {
+                        doc.get_i64("expires_at").unwrap_or(0)
+                    };
+                    
+                    let session = Session {
+                        token: doc.get_str("token").unwrap_or("").to_string(),
+                        user_id: doc.get_i64("user_id").unwrap_or(0),
+                        username: doc.get_str("username").unwrap_or("").to_string(),
+                        created_at: doc.get_i64("created_at").unwrap_or(0),
+                        expires_at,
+                    };
+                    
+                    // Check if session is expired
+                    let now = get_unix_timestamp();
+                    if session.expires_at < now {
+                        // Delete expired session
+                        let _ = sessions_collection
+                            .delete_one(doc! { "token": token }, None)
+                            .await;
+                        Ok(None)
+                    } else {
+                        Ok(Some(session))
+                    }
                 }
+                None => Ok(None),
             }
-            None => Ok(None),
-        }
+        })
     }
     
     fn delete_session(&self, token: &str) -> Result<(), String> {
-        let mut conn = self.get_conn()?;
+        let db = self.get_database();
+        let sessions_collection = db.collection::<Document>("sessions");
         
-        let _: () = conn.del(format!("session:{}", token))
-            .map_err(|e| format!("Redis error: {}", e))?;
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
         
-        Ok(())
+        rt.block_on(async {
+            sessions_collection
+                .delete_one(doc! { "token": token }, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            Ok(())
+        })
     }
     
     fn delete_expired_sessions(&self) -> Result<(), String> {
-        // Redis automatically deletes expired keys with TTL, so this is a no-op
-        Ok(())
+        // MongoDB TTL index handles this automatically
+        // But we can manually clean up if needed
+        let db = self.get_database();
+        let sessions_collection = db.collection::<Document>("sessions");
+        
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
+        
+        rt.block_on(async {
+            let now = bson::DateTime::from_millis(get_unix_timestamp() * 1000);
+            sessions_collection
+                .delete_many(doc! { "expires_at": { "$lt": now } }, None)
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+            
+            Ok(())
+        })
     }
 }

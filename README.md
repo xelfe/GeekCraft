@@ -64,7 +64,7 @@ GeekCraft
 - ✅ Axum HTTP/WebSocket Server
 - ✅ **Authentication System** (token-based, bcrypt password hashing)
 - ✅ **Multiplayer Support** (concurrent users with session management)
-- ✅ **Flexible Database** (In-Memory for dev, Redis for production MMO)
+- ✅ **Flexible Database** (In-Memory for dev, MongoDB for production MMO)
 - ✅ REST API for code submission and game state
 - ✅ WebSocket for real-time multiplayer communication
 - ✅ Code validation and storage
@@ -82,7 +82,7 @@ Prerequisites
 - Rust 1.70+ (rustup.rs)
 - Cargo
 - Optional: Node.js 18+ for Node examples
-- Optional: Redis server for production (see DATABASE.md)
+- Optional: MongoDB server for production (see DATABASE.md)
 
 Build
 ```bash
@@ -91,9 +91,9 @@ cd GeekCraft
 cargo build --release
 ```
 
-For production with Redis:
+For production with MongoDB:
 ```bash
-cargo build --release --features redis_backend
+cargo build --release
 ```
 
 Start the server
@@ -104,11 +104,11 @@ cargo run --release
 # Database: In-Memory (default, data lost on restart)
 ```
 
-For production with Redis:
+For production with MongoDB:
 ```bash
-export GEEKCRAFT_DB_BACKEND=REDIS
-export REDIS_URL=redis://127.0.0.1:6379
-cargo run --release --features redis_backend
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://localhost:27017/geekcraft
+cargo run --release
 ```
 
 ## Quick Start (Authentication + Multiplayer)
@@ -249,10 +249,11 @@ cargo build --release              # Release build
 cargo test                         # Run tests
 cargo doc --open                   # Generate and open docs
 
-# Production (with Redis)
-cargo build --release --features redis_backend
-export GEEKCRAFT_DB_BACKEND=REDIS
-cargo run --release --features redis_backend
+# Production (with MongoDB)
+cargo build --release
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://localhost:27017/geekcraft
+cargo run --release
 
 # Quick API checks (require authentication)
 curl http://localhost:3030/api/health
@@ -264,7 +265,7 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:3030/api/gamestate
 
 See [DATABASE.md](DATABASE.md) for detailed database options:
 - **In-Memory** (default): Development, zero config, data lost on restart
-- **Redis** (production): High concurrency, horizontal scaling, persistent sessions
+- **MongoDB** (production): Persistent storage, horizontal scaling, rich queries
 
 ## Roadmap
 
@@ -276,7 +277,7 @@ See [DATABASE.md](DATABASE.md) for detailed database options:
 - [x] WebSocket real-time communication  
 - [x] **Authentication and authorization (token-based)**
 - [x] **Multiplayer session management**
-- [x] **Flexible database (In-Memory, Redis)**
+- [x] **Flexible database (In-Memory, MongoDB)**
 - [x] Code validation and storage
 - [x] Basic world simulation (tick, terrain, resources)
 - [x] Integration tests
