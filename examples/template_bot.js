@@ -1,100 +1,100 @@
 /**
  * Bot Template for GeekCraft
  * 
- * Utilisez ce template comme point de départ pour votre propre bot.
- * Remplissez les méthodes avec votre logique personnalisée.
+ * Use this template as a starting point for your own bot.
+ * Fill in the methods with your custom logic.
  * 
- * @author Votre Nom
+ * @author Your Name
  * @version 1.0.0
  */
 
 class TemplateBot {
     constructor() {
-        this.name = "MonBot";
+        this.name = "MyBot";
         this.version = "1.0.0";
-        // Ajoutez vos propriétés personnalisées ici
+        // Add your custom properties here
     }
 
     /**
-     * Appelé une fois au démarrage du jeu
-     * Utilisez cette méthode pour initialiser vos structures de données
+     * Called once at game startup
+     * Use this method to initialize your data structures
      */
     onInit() {
-        // Initialisez votre bot ici
-        console.log(`${this.name} v${this.version} démarré!`);
+        // Initialize your bot here
+        console.log(`${this.name} v${this.version} started!`);
     }
 
     /**
-     * Boucle principale du jeu - appelée à chaque tick
-     * @param {GameState} gameState - L'état actuel du jeu
+     * Main game loop - called every tick
+     * @param {GameState} gameState - The current game state
      * 
-     * C'est ici que vous implémentez votre stratégie principale
+     * This is where you implement your main strategy
      */
     onTick(gameState) {
-        // Implémentez la stratégie de votre bot ici
+        // Implement your bot strategy here
         
-        // Exemple : récupérer vos unités
+        // Example: get your units
         // const myUnits = gameState.getMyUnits();
         
-        // Exemple : récupérer vos ressources
+        // Example: get your resources
         // const myResources = gameState.getMyResources();
         
-        // Exemple : trouver les ennemis
+        // Example: find enemies
         // const enemies = gameState.findEnemyUnits();
     }
 
     /**
-     * Appelé quand une nouvelle unité est créée
-     * @param {Unit} unit - La nouvelle unité
+     * Called when a new unit is created
+     * @param {Unit} unit - The new unit
      */
     onUnitCreated(unit) {
-        // Gérez la création d'une nouvelle unité
+        // Handle the creation of a new unit
     }
 
     /**
-     * Appelé quand une unité est détruite
-     * @param {Unit} unit - L'unité détruite
+     * Called when a unit is destroyed
+     * @param {Unit} unit - The destroyed unit
      */
     onUnitDestroyed(unit) {
-        // Gérez la destruction d'une unité
+        // Handle the destruction of a unit
     }
 
     /**
-     * Appelé quand des ressources sont collectées
-     * @param {Unit} unit - L'unité qui collecte
-     * @param {Resource} resource - La ressource collectée
-     * @param {number} amount - La quantité collectée
+     * Called when resources are collected
+     * @param {Unit} unit - The unit collecting
+     * @param {Resource} resource - The resource collected
+     * @param {number} amount - The amount collected
      */
     onResourceCollected(unit, resource, amount) {
-        // Gérez la collecte de ressources
+        // Handle resource collection
     }
 
     /**
-     * Appelé quand une structure est construite
-     * @param {Structure} structure - La structure construite
+     * Called when a structure is built
+     * @param {Structure} structure - The built structure
      */
     onStructureBuilt(structure) {
-        // Gérez la construction d'une structure
+        // Handle structure construction
     }
 
     /**
-     * Appelé quand votre unité attaque une autre unité
-     * @param {Unit} attacker - Votre unité qui attaque
-     * @param {Unit} target - La cible de l'attaque
+     * Called when your unit attacks another unit
+     * @param {Unit} attacker - Your attacking unit
+     * @param {Unit} target - The attack target
      */
     onUnitAttack(attacker, target) {
-        // Gérez les attaques
+        // Handle attacks
     }
 
     /**
-     * Appelé quand une de vos unités subit des dégâts
-     * @param {Unit} unit - L'unité blessée
-     * @param {number} damage - Les dégâts subis
+     * Called when one of your units takes damage
+     * @param {Unit} unit - The damaged unit
+     * @param {number} damage - The damage taken
      */
     onUnitDamaged(unit, damage) {
-        // Gérez les dégâts reçus
+        // Handle damage received
     }
 }
 
-// N'oubliez pas d'exporter votre bot !
+// Don't forget to export your bot!
 module.exports = TemplateBot;

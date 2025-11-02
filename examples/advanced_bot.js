@@ -1,11 +1,11 @@
 /**
  * Advanced Bot Example for GeekCraft
  * 
- * Ce bot démontre des stratégies plus avancées incluant :
- * - Gestion des ressources
- * - Rôles et assignations d'unités
- * - Construction de bâtiments
- * - Tactiques de combat
+ * This bot demonstrates more advanced strategies including:
+ * - Resource management
+ * - Unit roles and assignments
+ * - Building construction
+ * - Combat tactics
  * 
  * @author GeekCraft Team
  * @version 2.0.0
@@ -15,62 +15,62 @@ class AdvancedBot {
     constructor() {
         this.name = "AdvancedBot";
         this.version = "2.0.0";
-        this.unitRoles = new Map(); // Suivre les rôles des unités
+        this.unitRoles = new Map(); // Track unit roles
         this.resourceGoal = 1000;
         this.combatSquads = [];
     }
 
     onInit() {
-        console.log(`${this.name} v${this.version} initialisé avec IA avancée!`);
+        console.log(`${this.name} v${this.version} initialized with advanced AI!`);
     }
 
     onTick(gameState) {
         const myUnits = gameState.getMyUnits();
         const myResources = gameState.getMyResources();
         
-        // Stratégie 1 : Assigner des rôles aux unités
+        // Strategy 1: Assign roles to units
         this.assignRoles(myUnits, gameState);
         
-        // Stratégie 2 : Gérer les travailleurs
+        // Strategy 2: Manage workers
         this.manageWorkers(myUnits, gameState);
         
-        // Stratégie 3 : Construire des structures si on a assez de ressources
+        // Strategy 3: Build structures if we have enough resources
         if (myResources.minerals >= 100) {
             this.buildStructures(gameState);
         }
         
-        // Stratégie 4 : Gérer les unités de combat
+        // Strategy 4: Manage combat units
         this.manageCombatUnits(myUnits, gameState);
         
-        // Stratégie 5 : Produire de nouvelles unités
+        // Strategy 5: Produce new units
         if (myResources.minerals >= 50) {
             this.produceUnits(gameState);
         }
     }
 
     /**
-     * Assigne des rôles aux unités (travailleur ou soldat)
+     * Assign roles to units (worker or soldier)
      */
     assignRoles(units, gameState) {
         for (const unit of units) {
             if (!this.unitRoles.has(unit.id)) {
-                // Assigner le rôle en fonction du nombre d'unités
+                // Assign role based on number of units
                 const workerCount = Array.from(this.unitRoles.values())
                     .filter(role => role === 'worker').length;
                 
                 if (workerCount < 5) {
                     this.unitRoles.set(unit.id, 'worker');
-                    console.log(`Unité ${unit.id} assignée comme travailleur`);
+                    console.log(`Unit ${unit.id} assigned as worker`);
                 } else {
                     this.unitRoles.set(unit.id, 'soldier');
-                    console.log(`Unité ${unit.id} assignée comme soldat`);
+                    console.log(`Unit ${unit.id} assigned as soldier`);
                 }
             }
         }
     }
 
     /**
-     * Gère les unités de type travailleur
+     * Manage worker-type units
      */
     manageWorkers(units, gameState) {
         const workers = units.filter(u => this.unitRoles.get(u.id) === 'worker');
@@ -78,7 +78,7 @@ class AdvancedBot {
         for (const worker of workers) {
             if (worker.isIdle()) {
                 if (!worker.isCarryingResource()) {
-                    // Aller chercher des ressources
+                    // Go get resources
                     const resource = gameState.findNearestResource(worker.position);
                     
                     if (resource) {
@@ -86,7 +86,7 @@ class AdvancedBot {
                         worker.harvest(resource);
                     }
                 } else {
-                    // Déposer les ressources à la base
+                    // Deposit resources at base
                     const base = gameState.getMyMainBase();
                     if (base) {
                         worker.moveTo(base.position);
@@ -98,36 +98,36 @@ class AdvancedBot {
     }
 
     /**
-     * Construit des structures stratégiques
+     * Build strategic structures
      */
     buildStructures(gameState) {
         const bases = gameState.getMyBases();
         
-        // Construire une expansion si on a moins de 2 bases
+        // Build an expansion if we have fewer than 2 bases
         if (bases.length < 2) {
             const expansionLocation = gameState.findExpansionLocation();
             if (expansionLocation) {
                 gameState.buildStructure('base', expansionLocation);
-                console.log(`Construction d'une base d'expansion à ${expansionLocation}`);
+                console.log(`Building expansion base at ${expansionLocation}`);
             }
         }
         
-        // Construire des défenses autour de la base principale
+        // Build defenses around the main base
         const mainBase = gameState.getMyMainBase();
         if (mainBase && gameState.getMyResources().minerals >= 75) {
             const defensePositions = this.findDefensePositions(mainBase);
             for (const pos of defensePositions) {
                 if (!gameState.isStructureAt(pos)) {
                     gameState.buildStructure('turret', pos);
-                    console.log(`Construction d'une tourelle à ${pos}`);
-                    break; // Une à la fois
+                    console.log(`Building turret at ${pos}`);
+                    break; // One at a time
                 }
             }
         }
     }
 
     /**
-     * Trouve les positions optimales pour les défenses
+     * Find optimal positions for defenses
      */
     findDefensePositions(base) {
         const positions = [];
@@ -150,26 +150,26 @@ class AdvancedBot {
     }
 
     /**
-     * Gère les unités de combat
+     * Manage combat units
      */
     manageCombatUnits(units, gameState) {
         const soldiers = units.filter(u => this.unitRoles.get(u.id) === 'soldier');
         
-        // Organiser les soldats en escouades de 3
+        // Organize soldiers into squads of 3
         if (soldiers.length >= 3) {
             const enemies = gameState.findEnemyUnits();
             
             if (enemies.length > 0) {
-                // Attaquer l'ennemi le plus proche
+                // Attack the nearest enemy
                 const target = this.findNearestEnemy(soldiers[0].position, enemies);
                 
                 for (const soldier of soldiers) {
                     soldier.attack(target);
                 }
                 
-                console.log(`Escouade de ${soldiers.length} soldats attaque l'ennemi ${target.id}`);
+                console.log(`Squad of ${soldiers.length} soldiers attacking enemy ${target.id}`);
             } else {
-                // Patrouiller si aucun ennemi
+                // Patrol if no enemies
                 const patrolPoints = gameState.getPatrolPoints();
                 
                 for (let i = 0; i < soldiers.length; i++) {
@@ -181,7 +181,7 @@ class AdvancedBot {
     }
 
     /**
-     * Trouve l'ennemi le plus proche
+     * Find the nearest enemy
      */
     findNearestEnemy(position, enemies) {
         let nearest = enemies[0];
@@ -199,7 +199,7 @@ class AdvancedBot {
     }
 
     /**
-     * Calcule la distance entre deux positions
+     * Calculate distance between two positions
      */
     distance(pos1, pos2) {
         const dx = pos1.x - pos2.x;
@@ -208,7 +208,7 @@ class AdvancedBot {
     }
 
     /**
-     * Produit de nouvelles unités
+     * Produce new units
      */
     produceUnits(gameState) {
         const bases = gameState.getMyBases();
@@ -216,26 +216,26 @@ class AdvancedBot {
         
         for (const base of bases) {
             if (base.canProduceUnit() && myResources.minerals >= 50) {
-                // Décider quel type d'unité produire
+                // Decide which unit type to produce
                 const workerCount = Array.from(this.unitRoles.values())
                     .filter(role => role === 'worker').length;
                 
                 const unitType = workerCount < 5 ? 'worker' : 'soldier';
                 base.produceUnit(unitType);
-                console.log(`Production d'une unité de type ${unitType}`);
-                break; // Une unité à la fois
+                console.log(`Producing unit of type ${unitType}`);
+                break; // One unit at a time
             }
         }
     }
 
     onUnitDestroyed(unit) {
         this.unitRoles.delete(unit.id);
-        console.log(`Unité ${unit.id} détruite, réassignation des rôles...`);
+        console.log(`Unit ${unit.id} destroyed, reassigning roles...`);
     }
 
     onResourceCollected(unit, resource, amount) {
         const currentResources = gameState.getMyResources();
-        console.log(`Ressources totales : ${currentResources.minerals} (objectif: ${this.resourceGoal})`);
+        console.log(`Total resources: ${currentResources.minerals} (goal: ${this.resourceGoal})`);
     }
 }
 
