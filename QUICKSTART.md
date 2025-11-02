@@ -37,7 +37,25 @@ cargo build --release
 # Start the server
 cargo run --release
 
-# Server starts on ws://localhost:3030
+# Server starts on:
+# - HTTP: http://localhost:3030
+# - WebSocket: ws://localhost:3030/ws
+```
+
+You should see:
+```
+[INFO] 🎮 Starting GeekCraft v0.2.0
+[INFO] ✓ Game world initialized
+[INFO] ✓ Scripting engine initialized
+[INFO] ✓ Axum server listening on http://0.0.0.0:3030
+[INFO] ✓ WebSocket endpoint: ws://0.0.0.0:3030/ws
+[INFO] ✓ API endpoints:
+[INFO]   - GET  /
+[INFO]   - GET  /api/health
+[INFO]   - POST /api/submit
+[INFO]   - GET  /api/players
+[INFO]   - GET  /api/gamestate
+[INFO] 🚀 GeekCraft is ready!
 ```
 
 ## Test the Viewer
@@ -53,10 +71,16 @@ open index.html  # macOS
 xdg-open index.html  # Linux
 start index.html  # Windows
 
-# Or use a local HTTP server
+# Or use a local HTTP server (recommended)
 python3 -m http.server 8000
-# Then open http://localhost:8000
+# Then open http://localhost:8000 in your browser
 ```
+
+The viewer will:
+1. Connect to the WebSocket server at `ws://localhost:3030/ws`
+2. Display a welcome message
+3. Show the current game state
+4. Allow you to interact with the game (future features)
 
 ## Create Your First Bot
 
@@ -67,8 +91,32 @@ cp examples/template_bot.js my_bot.js
 # 2. Edit with your strategy
 nano my_bot.js  # or your favorite editor
 
-# 3. Test your bot
-# (via the server API or web interface)
+# 3. Submit your bot via HTTP API
+curl -X POST http://localhost:3030/api/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "player_id": "myplayer",
+    "code": "'"$(cat my_bot.js | sed 's/"/\\"/g' | tr -d '\n')"'"
+  }'
+
+# Expected response:
+# {"success":true,"message":"Code submitted successfully for player myplayer"}
+```
+
+### Test Your Bot Submission
+
+```bash
+# Check if your bot was registered
+curl http://localhost:3030/api/players
+
+# Expected response:
+# {"players":["myplayer"]}
+
+# Get current game state
+curl http://localhost:3030/api/gamestate
+
+# Expected response:
+# {"tick":0,"players":["myplayer"]}
 ```
 
 ## Useful Commands
@@ -86,8 +134,17 @@ cargo run
 # Run in release
 cargo run --release
 
+# Run with logs
+RUST_LOG=info cargo run
+
 # Tests
 cargo test
+
+# Check API health
+curl http://localhost:3030/api/health
+
+# Check available endpoints
+curl http://localhost:3030/
 
 # Documentation
 cargo doc --open
@@ -179,19 +236,30 @@ cargo update
 ## Summary
 
 ```bash
-# Build once
+# 1. Build once
 cd GeekCraft
 cargo build --release
 
-# Run
+# 2. Run the server
 cargo run --release
 
-# Test
+# 3. Test the API
+curl http://localhost:3030/api/health
+
+# 4. Open the viewer
 open examples/viewer/index.html
 
-# Code
+# 5. Create and submit your bot
 cp examples/template_bot.js my_bot.js
 # Edit my_bot.js with your strategy!
+
+# Submit via API
+curl -X POST http://localhost:3030/api/submit \
+  -H "Content-Type: application/json" \
+  -d '{"player_id":"me","code":"class MyBot{onTick(){console.log(\"Hi!\");}}module.exports=MyBot;"}'
+
+# 6. Check your bot was registered
+curl http://localhost:3030/api/players
 ```
 
 **That's it! You're ready to code! 🎮🚀**

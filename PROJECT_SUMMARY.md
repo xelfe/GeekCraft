@@ -217,27 +217,31 @@ GeekCraft/
 
 ### Phase 1: Foundations ✅
 - [x] Project structure
-- [x] Basic documentation
+- [x] Complete documentation
 - [x] JS bot examples
 - [x] HTML viewer example
+- [x] Headless architecture
 
 ### Phase 2: Base Engine 🚧
-- [ ] World simulation
-- [ ] Entity system
-- [ ] Resource management
+- [x] Basic world simulation (tick counter, terrain, resources)
+- [ ] Complete entity system
+- [ ] Advanced resource management
 - [ ] Movement system
 
-### Phase 3: Scripting ⏳
-- [ ] JavaScript sandbox (Boa/Deno)
-- [ ] Scripting API
+### Phase 3: Scripting 🚧
+- [x] Code storage and validation
+- [x] Basic scripting engine
+- [ ] Full JavaScript sandbox (Boa/Deno)
+- [ ] Complete scripting API
 - [ ] Event system
-- [ ] Security limitations
+- [ ] Advanced security limitations
 
-### Phase 4: Networking ⏳
-- [ ] WebSocket server
-- [ ] REST API
+### Phase 4: Networking ✅
+- [x] Axum HTTP server
+- [x] WebSocket server
+- [x] REST API endpoints
 - [ ] Authentication
-- [ ] Multiplayer
+- [ ] Multiplayer synchronization
 
 ### Phase 5: Gameplay 📅
 - [ ] Combat system
@@ -256,9 +260,10 @@ GeekCraft/
 ### Backend
 - **Rust** 1.70+ - Main language
 - **Tokio** - Async runtime
-- **Warp/Actix** - Web server
-- **Boa/Deno** - JavaScript engine
+- **Axum 0.7** - Web framework with WebSocket support
+- **Tower-HTTP** - CORS and tracing middleware
 - **Serde** - JSON serialization
+- **Future**: Boa/Deno for full JavaScript sandbox
 
 ### Frontend Examples
 - **HTML5/CSS3/JavaScript** - Basic viewer

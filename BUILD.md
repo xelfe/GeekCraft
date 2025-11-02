@@ -8,6 +8,12 @@ Before building GeekCraft, make sure you have:
 - **Cargo** (included with Rust)
 - **Git** (to clone the repository)
 
+### Optional Dependencies
+
+For running Node.js client examples:
+- **Node.js 18+**: [Installation](https://nodejs.org)
+- **npm** packages: `ws`, `node-fetch`
+
 ### Verify installation
 
 ```bash
@@ -31,7 +37,15 @@ cargo build
 ```
 
 This command:
-- Downloads all dependencies
+- Downloads all dependencies:
+  - Tokio (async runtime)
+  - Axum and Axum-extra (web framework)
+  - Tower and Tower-HTTP (middleware)
+  - Serde (JSON serialization)
+  - tokio-tungstenite (WebSocket)
+  - futures-util (async utilities)
+  - log and env_logger (logging)
+  - anyhow (error handling)
 - Compiles the project in debug mode
 - Creates the executable in `target/debug/geekcraft`
 
@@ -60,90 +74,125 @@ This command:
 ./target/release/geekcraft --version
 ```
 
-## Exécution
+## Execution
 
-### Mode Debug
+### Debug Mode
 
 ```bash
 cargo run
 ```
 
-ou directement :
+or directly:
 
 ```bash
 ./target/debug/geekcraft
 ```
 
-### Mode Release
+The server will start on:
+- HTTP: `http://localhost:3030`
+- WebSocket: `ws://localhost:3030/ws`
+
+### Release Mode
 
 ```bash
 cargo run --release
 ```
 
-ou directement :
+or directly:
 
 ```bash
 ./target/release/geekcraft
 ```
 
-### Avec logs détaillés
+### With Detailed Logs
 
 ```bash
 RUST_LOG=debug cargo run
 ```
 
-Niveaux de log disponibles : `error`, `warn`, `info`, `debug`, `trace`
+Available log levels: `error`, `warn`, `info`, `debug`, `trace`
+
+Example output:
+```
+[INFO] 🎮 Starting GeekCraft v0.2.0
+[INFO] ✓ Game world initialized
+[INFO] ✓ Scripting engine initialized
+[INFO] ✓ Axum server listening on http://0.0.0.0:3030
+[INFO] ✓ WebSocket endpoint: ws://0.0.0.0:3030/ws
+[INFO] ✓ Network server started at http://localhost:3030
+[INFO] 🚀 GeekCraft is ready!
+```
 
 ## Tests
 
-### Exécuter tous les tests
+### Run All Tests
 
 ```bash
 cargo test
 ```
 
-### Tests avec sortie détaillée
+This runs:
+- Unit tests in `src/`
+- Integration tests in `tests/`
+- Documentation tests
+
+### Tests with Detailed Output
 
 ```bash
 cargo test -- --nocapture
 ```
 
-### Tests d'un module spécifique
+### Test a Specific Module
 
 ```bash
 cargo test game::
 cargo test network::
+cargo test scripting::
 ```
 
-### Tests d'intégration
+### Integration Tests Only
 
 ```bash
 cargo test --test integration_tests
 ```
 
+Example output:
+```
+running 1 test
+test test_game_world_initialization ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored
+```
+
 ## Documentation
 
-### Générer la documentation
+### Generate Documentation
 
 ```bash
 cargo doc --no-deps
 ```
 
-### Ouvrir la documentation dans le navigateur
+This generates API documentation for GeekCraft modules:
+- `game::world` - World simulation
+- `scripting::sandbox` - Script engine
+- `network::server` - HTTP/WebSocket server
+- `api` - Scripting API (planned)
+
+### Open Documentation in Browser
 
 ```bash
 cargo doc --open
 ```
 
-## Nettoyage
+## Cleanup
 
-### Nettoyer les builds
+### Clean Builds
 
 ```bash
 cargo clean
 ```
 
-Cela supprime le dossier `target/` (utile si vous rencontrez des problèmes de compilation).
+This removes the `target/` directory (useful if you encounter compilation issues).
 
 ## Common Issues
 

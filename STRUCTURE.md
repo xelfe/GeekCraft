@@ -183,13 +183,43 @@ Use the technology of your choice! The provided HTML viewer is just an example.
 
 ## Next Steps
 
-### Current Phase: Foundations ✅
+### Current Phase: Base Engine & Networking 🚧
 
+#### Phase 1: Foundations ✅ (Completed)
 - [x] Project structure
 - [x] Complete documentation
 - [x] JavaScript bot examples
 - [x] Basic HTML viewer
 - [x] Headless architecture defined
+
+#### Phase 2: Base Engine 🚧 (In Progress)
+- [x] Basic world simulation (tick counter, terrain)
+- [x] Resource types (Wood, Stone, Gold)
+- [ ] Complete entity system
+- [ ] Advanced resource management
+- [ ] Movement logic
+
+#### Phase 3: Scripting 🚧 (In Progress)
+- [x] Code storage and validation
+- [x] Basic scripting engine
+- [ ] Full JS engine integration (Boa/Deno)
+- [ ] Complete functional scripting API
+- [ ] Advanced security limitations
+- [ ] Event management
+
+#### Phase 4: Networking ✅ (Completed)
+- [x] Axum HTTP server
+- [x] WebSocket server
+- [x] REST API endpoints
+- [x] CORS configuration
+- [ ] Authentication
+- [ ] Multiplayer synchronization
+
+#### Phase 5: Gameplay 📅 (Planned)
+- [ ] Combat
+- [ ] Construction
+- [ ] Tech tree
+- [ ] Balance
 
 ### Upcoming Phases
 
@@ -205,11 +235,11 @@ Use the technology of your choice! The provided HTML viewer is just an example.
    - Security limitations
    - Event management
 
-3. **Network Server** 🚧
-   - WebSocket server
-   - REST API
-   - Authentication
-   - Multiplayer
+3. **Network Server** ✅
+   - WebSocket server (Completed)
+   - REST API (Completed)
+   - Authentication (Planned)
+   - Multiplayer (Planned)
 
 4. **Gameplay** 📅
    - Combat
@@ -222,9 +252,11 @@ Use the technology of your choice! The provided HTML viewer is just an example.
 ### Backend (Rust)
 - **Rust** 1.70+
 - **Tokio** - Async runtime
-- **Warp/Actix** - Web framework (to be decided)
-- **Boa/Deno** - JavaScript engine (to be decided)
+- **Axum 0.7** - Web framework with WebSocket support
+- **Tower-HTTP** - CORS and tracing middleware
 - **Serde** - JSON serialization
+- **Anyhow** - Error handling
+- **Future**: Boa/Deno for full JavaScript sandbox
 
 ### Frontend (Examples)
 - **HTML5/CSS3/JavaScript** - Basic viewer
