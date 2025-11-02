@@ -53,14 +53,23 @@ class GeekCraftViewer {
     }
 
     setupEventListeners() {
-        // Authentication buttons
-        document.getElementById('login-btn').addEventListener('click', () => this.login());
-        document.getElementById('register-btn').addEventListener('click', () => this.register());
-        document.getElementById('logout-btn').addEventListener('click', () => this.logout());
+        // User menu toggle
+        document.getElementById('user-menu-btn').addEventListener('click', () => this.openUserMenu());
+        document.getElementById('close-menu-btn').addEventListener('click', () => this.closeUserMenu());
+        document.getElementById('user-menu-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'user-menu-modal') {
+                this.closeUserMenu();
+            }
+        });
         
-        // Connection buttons
-        document.getElementById('connect-btn').addEventListener('click', () => this.connect());
-        document.getElementById('disconnect-btn').addEventListener('click', () => this.disconnect());
+        // Authentication buttons (from menu)
+        document.getElementById('login-btn-menu').addEventListener('click', () => this.login());
+        document.getElementById('register-btn-menu').addEventListener('click', () => this.register());
+        document.getElementById('logout-btn-menu').addEventListener('click', () => this.logout());
+        
+        // Connection buttons (from menu)
+        document.getElementById('connect-btn-menu').addEventListener('click', () => this.connect());
+        document.getElementById('disconnect-btn-menu').addEventListener('click', () => this.disconnect());
         
         // Camera controls
         document.getElementById('zoom-in').addEventListener('click', () => this.zoom(1.2));
@@ -87,11 +96,19 @@ class GeekCraftViewer {
             document.getElementById('console-output').innerHTML = '';
         });
     }
+    
+    openUserMenu() {
+        document.getElementById('user-menu-modal').style.display = 'flex';
+    }
+    
+    closeUserMenu() {
+        document.getElementById('user-menu-modal').style.display = 'none';
+    }
 
     async register() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-        const apiUrl = document.getElementById('api-url').value;
+        const username = document.getElementById('username-menu').value.trim();
+        const password = document.getElementById('password-menu').value;
+        const apiUrl = document.getElementById('api-url-menu').value;
         
         if (!username || !password) {
             this.log('Please enter username and password', 'error');
@@ -119,9 +136,9 @@ class GeekCraftViewer {
     }
     
     async login() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-        const apiUrl = document.getElementById('api-url').value;
+        const username = document.getElementById('username-menu').value.trim();
+        const password = document.getElementById('password-menu').value;
+        const apiUrl = document.getElementById('api-url-menu').value;
         
         if (!username || !password) {
             this.log('Please enter username and password', 'error');
@@ -157,7 +174,7 @@ class GeekCraftViewer {
             return;
         }
         
-        const apiUrl = document.getElementById('api-url').value;
+        const apiUrl = document.getElementById('api-url-menu').value;
         
         try {
             const response = await fetch(`${apiUrl}/api/auth/logout`, {
@@ -185,10 +202,11 @@ class GeekCraftViewer {
     connect() {
         if (!this.token) {
             this.log('Please login first before connecting to the game server', 'error');
+            this.openUserMenu(); // Open menu to prompt login
             return;
         }
         
-        const serverUrl = document.getElementById('server-url').value;
+        const serverUrl = document.getElementById('server-url-menu').value;
         this.log(`Connecting to ${serverUrl}...`);
         
         try {
@@ -402,13 +420,13 @@ class GeekCraftViewer {
     }
 
     updateAuthStatus(loggedIn) {
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const connectBtn = document.getElementById('connect-btn');
-        const usernameField = document.getElementById('username');
-        const passwordField = document.getElementById('password');
-        const authStatus = document.getElementById('auth-status');
+        const loginBtn = document.getElementById('login-btn-menu');
+        const registerBtn = document.getElementById('register-btn-menu');
+        const logoutBtn = document.getElementById('logout-btn-menu');
+        const connectBtn = document.getElementById('connect-btn-menu');
+        const usernameField = document.getElementById('username-menu');
+        const passwordField = document.getElementById('password-menu');
+        const authStatus = document.getElementById('auth-status-menu');
         
         if (loggedIn) {
             loginBtn.disabled = true;
@@ -434,8 +452,8 @@ class GeekCraftViewer {
     updateConnectionStatus(connected) {
         const indicator = document.getElementById('status-indicator');
         const text = document.getElementById('status-text');
-        const connectBtn = document.getElementById('connect-btn');
-        const disconnectBtn = document.getElementById('disconnect-btn');
+        const connectBtn = document.getElementById('connect-btn-menu');
+        const disconnectBtn = document.getElementById('disconnect-btn-menu');
         
         if (connected) {
             indicator.className = 'status-connected';
