@@ -14,6 +14,14 @@ use super::models::{User, Session};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+/// Helper function to get current Unix timestamp safely
+fn get_unix_timestamp() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("System clock is before Unix epoch")
+        .as_secs() as i64
+}
+
 /// Database backend configuration
 #[derive(Debug, Clone)]
 pub enum DatabaseBackend {
@@ -119,10 +127,7 @@ impl AuthDatabaseTrait for InMemoryBackend {
         let user_id = *next_id;
         *next_id += 1;
         
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now = get_unix_timestamp();
         
         let user = User {
             id: user_id,
@@ -147,10 +152,7 @@ impl AuthDatabaseTrait for InMemoryBackend {
         let user = users_by_id.get(&user_id)
             .ok_or("User not found")?;
         
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now = get_unix_timestamp();
         
         let session = Session {
             token: token.to_string(),
@@ -170,14 +172,13 @@ impl AuthDatabaseTrait for InMemoryBackend {
         let sessions = self.sessions.lock().unwrap();
         
         if let Some(session) = sessions.get(token) {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as i64;
+            let now = get_unix_timestamp();
             
             if session.expires_at < now {
-                drop(sessions);
-                let _ = self.delete_session(token);
+                // Session expired - delete it
+                let token_clone = token.to_string();
+                drop(sessions); // Release lock before delete
+                let _ = self.delete_session(&token_clone);
                 Ok(None)
             } else {
                 Ok(Some(session.clone()))
@@ -194,10 +195,7 @@ impl AuthDatabaseTrait for InMemoryBackend {
     }
     
     fn delete_expired_sessions(&self) -> Result<(), String> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now = get_unix_timestamp();
         
         let mut sessions = self.sessions.lock().unwrap();
         sessions.retain(|_, session| session.expires_at >= now);

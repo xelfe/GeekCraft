@@ -113,7 +113,7 @@ impl AuthService {
                 let token = Uuid::new_v4().to_string();
                 let now = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
+                    .expect("System clock is before Unix epoch")
                     .as_secs() as i64;
                 let expires_at = now + SESSION_DURATION;
                 

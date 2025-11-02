@@ -248,8 +248,8 @@ async fn submit_code_handler(
         }
     };
     
-    // Parse request body
-    let bytes = match axum::body::to_bytes(request.into_body(), usize::MAX).await {
+    // Parse request body with size limit (1MB for code submissions)
+    let bytes = match axum::body::to_bytes(request.into_body(), 1_048_576).await {
         Ok(b) => b,
         Err(e) => {
             return (
