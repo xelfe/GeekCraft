@@ -5,19 +5,9 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use lazy_static::lazy_static;
 
-use crate::game::world::World;
 use crate::game::zone::Zone;
 use crate::network::server::AppState;
-
-lazy_static! {
-    static ref WORLD: Arc<RwLock<World>> = {
-        Arc::new(RwLock::new(World::new()))
-    };
-}
 
 /// Request to generate a new zone
 #[derive(Debug, Deserialize)]
@@ -51,10 +41,10 @@ pub struct ListZonesResponse {
 
 /// Handler to generate a new zone for a player
 pub async fn generate_zone_handler(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Json(payload): Json<GenerateZoneRequest>,
 ) -> impl IntoResponse {
-    let mut world = WORLD.write().await;
+    let mut world = state.game_world.write().await;
     
     let zone_id = world.generate_player_zone(&payload.player_id);
     
@@ -72,10 +62,10 @@ pub async fn generate_zone_handler(
 
 /// Handler to get a specific zone by ID
 pub async fn get_zone_handler(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Path(zone_id): Path<String>,
 ) -> impl IntoResponse {
-    let world = WORLD.read().await;
+    let world = state.game_world.read().await;
     
     match world.get_zone(&zone_id) {
         Some(zone) => {
@@ -103,9 +93,9 @@ pub async fn get_zone_handler(
 
 /// Handler to list all zones
 pub async fn list_zones_handler(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
 ) -> impl IntoResponse {
-    let world = WORLD.read().await;
+    let world = state.game_world.read().await;
     
     let zone_ids = world.get_zone_ids();
     

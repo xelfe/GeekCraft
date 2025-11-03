@@ -2,7 +2,7 @@
 // Each player starts in their own 30x30 tile zone with procedurally generated terrain
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 /// Size of each zone in tiles
 pub const ZONE_SIZE: usize = 30;
@@ -130,7 +130,7 @@ impl Zone {
     /// Generate exits for the zone
     fn generate_exits(num_exits: usize, rng: &mut SimpleRng) -> Vec<Exit> {
         let mut exits = Vec::with_capacity(num_exits);
-        let mut used_directions = HashMap::new();
+        let mut used_directions = HashSet::new();
         
         for _ in 0..num_exits {
             // Pick a random direction that hasn't been used
@@ -142,8 +142,8 @@ impl Zone {
                     _ => ExitDirection::West,
                 };
                 
-                if !used_directions.contains_key(&dir) {
-                    used_directions.insert(dir, true);
+                if !used_directions.contains(&dir) {
+                    used_directions.insert(dir);
                     break dir;
                 }
                 
