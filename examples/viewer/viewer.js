@@ -4,7 +4,7 @@
  * This viewer connects to the GeekCraft server via WebSocket
  * and displays the game state in real-time on an HTML5 canvas.
  * 
- * CURRENT SERVER SUPPORT (v0.2.0+):
+ * CURRENT SERVER SUPPORT (v0.2.0-alpha):
  * - AUTHENTICATION: Token-based authentication required
  * - DYNAMIC: tick (game tick counter) and players (list of player IDs)
  * - MULTIPLAYER: Multiple authenticated users can connect concurrently

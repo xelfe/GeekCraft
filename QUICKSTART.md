@@ -1,4 +1,6 @@
-# 🚀 GeekCraft - Quick Start Guide
+# 🚀 GeekCraft - Quick Start Guide (v0.2.0-alpha)
+
+> **🚧 Pre-release Alpha** - This version includes authentication, multiplayer, zone generation, and campaign systems. Full game simulation with JavaScript bot execution is still in development.
 
 ## Building the Project
 
@@ -44,18 +46,20 @@ cargo run --release
 
 You should see:
 ```
-[INFO] 🎮 Starting GeekCraft v0.2.0
+[INFO] 🎮 Starting GeekCraft v0.2.0-alpha
+[INFO] 📦 Using In-Memory database (data will be lost on restart)
+[INFO] 💡 For production, use MongoDB: export GEEKCRAFT_DB_BACKEND=MONGODB
+[INFO] ✓ Authentication database initialized
+[INFO] ✓ Authentication service initialized
 [INFO] ✓ Game world initialized
 [INFO] ✓ Scripting engine initialized
-[INFO] ✓ Axum server listening on http://0.0.0.0:3030
-[INFO] ✓ WebSocket endpoint: ws://0.0.0.0:3030/ws
-[INFO] ✓ API endpoints:
-[INFO]   - GET  /
-[INFO]   - GET  /api/health
-[INFO]   - POST /api/submit
-[INFO]   - GET  /api/players
-[INFO]   - GET  /api/gamestate
+[INFO] ✓ Network server started at http://localhost:3030
+[INFO] ✓ WebSocket available at ws://localhost:3030/ws
+[INFO] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [INFO] 🚀 GeekCraft is ready!
+[INFO] 📚 Check out the examples in /examples
+[INFO] 🔐 Authentication enabled - register to start playing
+[INFO] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ## Authenticate and Submit Your First Bot

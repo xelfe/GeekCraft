@@ -2,7 +2,7 @@
 
 This HTML viewer is a basic example of a visualization client for GeekCraft. It demonstrates how to connect to the game server with authentication and display the game state in real-time.
 
-## Current Server Support (v0.2.0+)
+## Current Server Support (v0.2.0-alpha)
 
 The server now requires authentication and provides:
 - ✅ **AUTHENTICATION**: Token-based authentication (register/login required)
@@ -124,7 +124,7 @@ Modern styles with:
 
 The viewer communicates with the server via WebSocket in JSON. **Authentication is now required.**
 
-### Current Implementation (v0.2.0+)
+### Current Implementation (v0.2.0-alpha)
 
 #### Connection Flow
 
@@ -141,7 +141,7 @@ The viewer communicates with the server via WebSocket in JSON. **Authentication 
 {
     "type": "welcome",
     "message": "Connected to GeekCraft server. Send auth command to authenticate.",
-    "version": "0.2.0",
+    "version": "0.2.0-alpha",
     "requiresAuth": true
 }
 ```
