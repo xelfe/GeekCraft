@@ -1,4 +1,6 @@
-# GeekCraft - Project Summary
+# GeekCraft - Project Summary (v0.2.0-alpha)
+
+> **🚧 Pre-release Alpha** - Core infrastructure complete. Authentication, multiplayer, zone generation, and campaign systems are working. Full game simulation with JavaScript bot execution is in development.
 
 ## Overview
 
@@ -215,39 +217,52 @@ GeekCraft/
 
 ## Roadmap
 
-### Phase 1: Foundations ✅
+### ✅ Phase 1: Foundations (v0.2.0-alpha - Completed)
 - [x] Project structure
 - [x] Complete documentation
 - [x] JS bot examples
 - [x] HTML viewer example
 - [x] Headless architecture
 
-### Phase 2: Base Engine 🚧
-- [x] Basic world simulation (tick counter, terrain, resources)
+### ✅ Phase 2: Base Engine (v0.2.0-alpha - Partially Complete)
+- [x] Basic world simulation (tick counter, terrain)
+- [x] Resource types (Wood, Stone, Gold)
+- [x] Procedural zone generation (30x30 tiles)
 - [ ] Complete entity system
 - [ ] Advanced resource management
-- [ ] Movement system
+- [ ] Movement logic
 
-### Phase 3: Scripting 🚧
+### 🚧 Phase 3: Scripting (In Progress)
 - [x] Code storage and validation
 - [x] Basic scripting engine
-- [ ] Full JavaScript sandbox (Boa/Deno)
-- [ ] Complete scripting API
-- [ ] Event system
+- [ ] Full JS engine integration (Boa/Deno)
+- [ ] Complete functional scripting API
 - [ ] Advanced security limitations
+- [ ] Event management
 
-### Phase 4: Networking ✅
+### ✅ Phase 4: Networking (v0.2.0-alpha - Completed)
 - [x] Axum HTTP server
 - [x] WebSocket server
 - [x] REST API endpoints
-- [ ] Authentication
-- [ ] Multiplayer synchronization
+- [x] CORS configuration
+- [x] Authentication (token-based)
+- [ ] Multiplayer synchronization (real-time ticks)
 
-### Phase 5: Gameplay 📅
-- [ ] Combat system
-- [ ] Building construction
+### ✅ Phase 5: Database (v0.2.0-alpha - Completed)
+- [x] In-Memory database for development
+- [x] MongoDB support for production
+- [x] Database abstraction layer
+
+### ✅ Phase 6: Campaign System (v0.2.0-alpha - Completed)
+- [x] Campaign run management
+- [x] Local persistence (save/load)
+- [x] Campaign API endpoints
+
+### 📅 Phase 7: Gameplay (Planned)
+- [ ] Combat
+- [ ] Construction
 - [ ] Tech tree
-- [ ] Fog of war
+- [ ] Balance
 
 ### Phase 6: Advanced 📅
 - [ ] Replays
