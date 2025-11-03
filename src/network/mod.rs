@@ -2,3 +2,4 @@
 
 pub mod server;
 pub mod campaign_routes;
+pub mod zone_routes;

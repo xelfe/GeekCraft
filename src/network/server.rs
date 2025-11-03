@@ -28,6 +28,11 @@ use crate::network::campaign_routes::{
     list_saves_handler,
     load_run_handler,
 };
+use crate::network::zone_routes::{
+    generate_zone_handler,
+    get_zone_handler,
+    list_zones_handler,
+};
 
 /// Shared application state
 #[derive(Clone)]
@@ -96,6 +101,10 @@ pub async fn start_server(
         .route("/api/campaign/save", post(save_run_handler))
         .route("/api/campaign/saves", get(list_saves_handler))
         .route("/api/campaign/load", post(load_run_handler))
+        // Zone endpoints (no auth required for now)
+        .route("/api/zone/generate", post(generate_zone_handler))
+        .route("/api/zone/:zone_id", get(get_zone_handler))
+        .route("/api/zones", get(list_zones_handler))
         // Protected endpoints (auth required)
         .route("/api/auth/logout", post(logout_handler))
         .route("/api/submit", post(submit_code_handler))
@@ -140,6 +149,9 @@ pub async fn start_server(
     log::info!("  - POST /api/campaign/save");
     log::info!("  - GET  /api/campaign/saves");
     log::info!("  - POST /api/campaign/load");
+    log::info!("  - POST /api/zone/generate");
+    log::info!("  - GET  /api/zone/:zone_id");
+    log::info!("  - GET  /api/zones");
 
     // Start the server
     axum::serve(listener, app).await?;
@@ -160,7 +172,8 @@ async fn auth_middleware(
         || path == "/api/auth/register" 
         || path == "/api/auth/login" 
         || path == "/ws"
-        || path.starts_with("/api/campaign/") {
+        || path.starts_with("/api/campaign/")
+        || path.starts_with("/api/zone") {
         return Ok(next.run(request).await);
     }
     

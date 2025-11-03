@@ -3,6 +3,7 @@
 // so we must use the crate name as the path root.
 
 use geekcraft::game::world::World;
+use geekcraft::game::zone::{Zone, SurfaceType, ZONE_SIZE};
 use geekcraft::auth::{AuthDatabase, DatabaseBackend};
 
 #[test]
@@ -62,4 +63,74 @@ fn test_auth_database_inmemory() {
         .expect("Failed to check deleted session");
     
     assert!(deleted_session.is_none(), "Session should be deleted");
+}
+
+#[test]
+fn test_zone_generation_and_world_integration() {
+    let mut world = World::new();
+    
+    // Generate a zone for a player
+    let zone_id = world.generate_player_zone("player1");
+    
+    // Verify zone was created
+    assert_eq!(zone_id, "player_player1_zone");
+    
+    // Retrieve the zone
+    let zone = world.get_zone(&zone_id)
+        .expect("Zone should exist in world");
+    
+    // Verify zone properties
+    assert_eq!(zone.id, zone_id);
+    assert_eq!(zone.tiles.len(), ZONE_SIZE);
+    assert_eq!(zone.tiles[0].len(), ZONE_SIZE);
+    assert!(zone.exits.len() >= 2 && zone.exits.len() <= 4);
+    
+    // Verify zone has all surface types
+    let has_plain = zone.count_surface_type(SurfaceType::Plain) > 0;
+    let has_swamp = zone.count_surface_type(SurfaceType::Swamp) > 0;
+    let has_obstacle = zone.count_surface_type(SurfaceType::Obstacle) > 0;
+    
+    assert!(has_plain, "Zone should have Plain tiles");
+    assert!(has_swamp, "Zone should have Swamp tiles");
+    assert!(has_obstacle, "Zone should have Obstacle tiles");
+}
+
+#[test]
+fn test_multiple_zones_in_world() {
+    let mut world = World::new();
+    
+    // Generate zones for multiple players
+    let zone1_id = world.generate_player_zone("player1");
+    let zone2_id = world.generate_player_zone("player2");
+    let zone3_id = world.generate_player_zone("player3");
+    
+    // Verify all zones exist
+    assert!(world.get_zone(&zone1_id).is_some());
+    assert!(world.get_zone(&zone2_id).is_some());
+    assert!(world.get_zone(&zone3_id).is_some());
+    
+    // Verify zone IDs are listed
+    let zone_ids = world.get_zone_ids();
+    assert_eq!(zone_ids.len(), 3);
+    assert!(zone_ids.contains(&zone1_id));
+    assert!(zone_ids.contains(&zone2_id));
+    assert!(zone_ids.contains(&zone3_id));
+}
+
+#[test]
+fn test_zone_deterministic_for_same_player() {
+    let mut world1 = World::new();
+    let mut world2 = World::new();
+    
+    // Generate zone for same player in different worlds
+    let zone1_id = world1.generate_player_zone("player1");
+    let zone2_id = world2.generate_player_zone("player1");
+    
+    let zone1 = world1.get_zone(&zone1_id).unwrap();
+    let zone2 = world2.get_zone(&zone2_id).unwrap();
+    
+    // Zones should be identical for same player ID
+    assert_eq!(zone1.tiles[0][0].surface_type, zone2.tiles[0][0].surface_type);
+    assert_eq!(zone1.tiles[15][15].surface_type, zone2.tiles[15][15].surface_type);
+    assert_eq!(zone1.exits.len(), zone2.exits.len());
 }
