@@ -58,7 +58,46 @@ A complete multiplayer example with WebSocket authentication.
 </script>
 ```
 
-### 3. `api_client_example.js`
+### 3. `zone_generation_example.js`
+
+A complete example demonstrating procedural zone generation for player starting areas.
+
+**Features:**
+- Zone generation for players
+- Zone data retrieval and analysis
+- Terrain distribution calculation
+- ASCII visualization of zones
+- Multi-player zone management
+- Zone listing
+
+**Usage (Node.js):**
+```bash
+node examples/zone_generation_example.js
+```
+
+**Usage (Browser):**
+```html
+<script src="zone_generation_example.js"></script>
+<script>
+  // Run the complete example
+  main();
+  
+  // Or use individual functions
+  await generateZone('alice');
+  const zone = await getZone('player_alice_zone');
+  analyzeZone(zone);
+  visualizeZone(zone);
+  await listZones();
+</script>
+```
+
+**Zone Structure:**
+- 30x30 tiles (900 tiles total)
+- Three terrain types: Plain (~60%), Swamp (~25%), Obstacle (~15%)
+- 2-4 exits per zone (North, South, East, West)
+- Deterministic generation (same player ID = same zone)
+
+### 4. `api_client_example.js`
 
 A browser/Node.js example demonstrating both HTTP and WebSocket APIs with authentication.
 
@@ -85,7 +124,7 @@ A browser/Node.js example demonstrating both HTTP and WebSocket APIs with authen
 </script>
 ```
 
-### 4. `node_client_example.js`
+### 5. `node_client_example.js`
 
 A complete Node.js example for connecting to the GeekCraft server with authentication.
 
@@ -104,7 +143,7 @@ node examples/node_client_example.js
 - Tests WebSocket communication with authentication
 - Complete example with proper async/await handling
 
-### 5. Bot Examples
+### 6. Bot Examples
 
 - `basic_bot.js` - Simple bot example
 - `advanced_bot.js` - Advanced bot with strategies
