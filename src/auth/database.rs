@@ -41,11 +41,17 @@ pub enum DatabaseBackend {
 /// Authentication database trait
 /// Implement this trait to add support for new database backends
 pub trait AuthDatabaseTrait: Send + Sync {
+    /// Create a new user with the given username and password hash
     fn create_user(&self, username: &str, password_hash: &str) -> Result<User, String>;
+    /// Get a user by username
     fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String>;
+    /// Create a new session for a user
     fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String>;
+    /// Get a session by token
     fn get_session(&self, token: &str) -> Result<Option<Session>, String>;
+    /// Delete a session by token
     fn delete_session(&self, token: &str) -> Result<(), String>;
+    /// Delete all expired sessions
     fn delete_expired_sessions(&self) -> Result<(), String>;
 }
 
@@ -68,26 +74,32 @@ impl AuthDatabase {
         Ok(AuthDatabase { backend: db })
     }
     
+    /// Create a new user with the given username and password hash
     pub fn create_user(&self, username: &str, password_hash: &str) -> Result<User, String> {
         self.backend.create_user(username, password_hash)
     }
     
+    /// Get a user by username
     pub fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String> {
         self.backend.get_user_by_username(username)
     }
     
+    /// Create a new session for a user
     pub fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String> {
         self.backend.create_session(token, user_id, expires_at)
     }
     
+    /// Get a session by token
     pub fn get_session(&self, token: &str) -> Result<Option<Session>, String> {
         self.backend.get_session(token)
     }
     
+    /// Delete a session by token
     pub fn delete_session(&self, token: &str) -> Result<(), String> {
         self.backend.delete_session(token)
     }
     
+    /// Delete all expired sessions
     pub fn delete_expired_sessions(&self) -> Result<(), String> {
         self.backend.delete_expired_sessions()
     }

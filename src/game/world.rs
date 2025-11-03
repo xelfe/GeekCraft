@@ -1,3 +1,7 @@
+//! World module
+//! 
+//! Manages the game world state, including zones and tick counter.
+
 use std::collections::HashMap;
 use crate::game::zone::Zone;
 

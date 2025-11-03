@@ -1,5 +1,7 @@
-// Zone generation module for procedural landscape generation
-// Each player starts in their own 30x30 tile zone with procedurally generated terrain
+//! Zone generation module for procedural landscape generation
+//! 
+//! Each player starts in their own 30x30 tile zone with procedurally generated terrain.
+//! Zones feature three surface types (Plain, Swamp, Obstacle) and 2-4 exits for future interconnection.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;

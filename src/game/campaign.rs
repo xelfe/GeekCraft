@@ -1,3 +1,7 @@
+//! Campaign module
+//! 
+//! Manages campaign runs, save/load functionality, and game state persistence.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;

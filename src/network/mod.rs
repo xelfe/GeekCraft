@@ -1,4 +1,6 @@
-// This file declares the network module and imports the associated sub-modules.
+//! Network module
+//! 
+//! Handles HTTP/WebSocket server, REST API endpoints, and client communication.
 
 pub mod server;
 pub mod campaign_routes;
