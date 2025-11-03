@@ -5,7 +5,7 @@
 <img src="https://img.shields.io/badge/license-MIT-green">
 <img src="https://img.shields.io/badge/status-pre--release-yellow">
 
-> **🚧 Pre-release Alpha Version 0.2.0** - This is an early alpha release. Core infrastructure is complete (authentication, multiplayer, zone generation, campaign system), but the full game simulation and JavaScript sandbox execution are still in development. See [Features](#features) for current implementation status.
+> **🚧 Pre-release Alpha Version 0.2.0** - This is an early alpha release. Core infrastructure is complete (authentication, multiplayer, zone generation, campaign system), but the full game simulation and JavaScript sandbox execution are still in development. See [Features](#features) for current implementation status, or check [FEATURES.md](FEATURES.md) for detailed feature documentation.
 
 ## Description
 
@@ -178,11 +178,21 @@ ws.onmessage = (e) => {
 ws.send(JSON.stringify({ type: 'getGameState' }));
 ```
 
-5) **Try the examples**
-- Authentication: `examples/auth_example.js`
-- Multiplayer: `examples/multiplayer_example.js`
-- Zone Generation: `examples/zone_generation_example.js`
-- HTML Viewer:
+5) **Try the working examples**
+
+All examples are tested and working in v0.2.0-alpha:
+
+**Node.js Examples** (require `npm install ws node-fetch@2` in project root):
+- `node examples/node_client_example.js` - Complete example with all features
+- `node examples/zone_generation_example.js` - Zone generation demo
+- `node examples/campaign_local_save_example.js` - Campaign system demo
+
+**Browser Examples** (load directly in browser):
+- `examples/auth_example.js` - Authentication workflow
+- `examples/multiplayer_example.js` - Multiplayer client
+- `examples/api_client_example.js` - HTTP/WebSocket client
+
+**HTML Viewer:**
 ```bash
 cd examples/viewer
 # macOS: open index.html

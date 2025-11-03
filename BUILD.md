@@ -1,4 +1,6 @@
-# Build Guide - GeekCraft
+# Build Guide - GeekCraft v0.2.0-alpha
+
+> **🚧 Pre-release Alpha** - This guide is for GeekCraft v0.2.0-alpha. See [FEATURES.md](FEATURES.md) for what's currently implemented.
 
 ## Prerequisites
 

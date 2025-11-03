@@ -24,8 +24,12 @@ class GeekCraftViewer {
         this.username = null;
         this.authenticated = false;
         
-        // Game state (only tick and players are currently supported by server)
+        // Game state (tick and players are supported by server)
         this.gameState = null;
+        
+        // Zone data (landscape/terrain visualization)
+        this.currentZone = null;
+        this.zoneList = [];
         
         // Placeholder state for future features (not yet implemented on server)
         this.selectedUnit = null;
@@ -42,6 +46,9 @@ class GeekCraftViewer {
         
         // Polling interval for auto-updates
         this.pollingInterval = null;
+        
+        // API base URL
+        this.apiUrl = 'http://localhost:3030';
         
         this.init();
     }
@@ -199,6 +206,44 @@ class GeekCraftViewer {
         }
     }
     
+    // Zone Management Functions
+    async fetchZones() {
+        try {
+            // Get list of all zones
+            const response = await fetch(`${this.apiUrl}/api/zones`);
+            const data = await response.json();
+            
+            if (data.success && data.zone_ids && data.zone_ids.length > 0) {
+                this.zoneList = data.zone_ids;
+                this.log(`✓ Found ${data.zone_ids.length} zone(s)`, 'success');
+                
+                // Load the first zone automatically
+                await this.loadZone(data.zone_ids[0]);
+            } else {
+                this.log('No zones found. Generate a zone first.', 'info');
+            }
+        } catch (error) {
+            this.log(`Error fetching zones: ${error.message}`, 'error');
+        }
+    }
+    
+    async loadZone(zoneId) {
+        try {
+            const response = await fetch(`${this.apiUrl}/api/zone/${zoneId}`);
+            const data = await response.json();
+            
+            if (data.success && data.zone) {
+                this.currentZone = data.zone;
+                this.log(`✓ Loaded zone: ${zoneId}`, 'success');
+                this.updateUI();
+            } else {
+                this.log(`Failed to load zone: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            this.log(`Error loading zone: ${error.message}`, 'error');
+        }
+    }
+    
     connect() {
         if (!this.token) {
             this.log('Please login first before connecting to the game server', 'error');
@@ -273,6 +318,8 @@ class GeekCraftViewer {
                     this.log(`✓ Authenticated as ${message.username}`, 'success');
                     // Request initial game state
                     this.sendCommand({ type: 'getGameState' });
+                    // Fetch zone data via REST API
+                    this.fetchZones();
                     // Start polling for updates
                     this.startPolling();
                 } else {
@@ -379,19 +426,53 @@ class GeekCraftViewer {
     }
 
     updateUI() {
-        if (!this.gameState) return;
+        if (!this.gameState && !this.currentZone) return;
         
         // DYNAMIC: Update tick (from server)
-        document.getElementById('game-tick').textContent = this.gameState.tick || 0;
+        if (this.gameState) {
+            document.getElementById('game-tick').textContent = this.gameState.tick || 0;
+            
+            // DYNAMIC: Update player count (from server)
+            document.getElementById('player-count').textContent = this.gameState.players?.length || 0;
+        }
         
-        // DYNAMIC: Update player count (from server)
-        document.getElementById('player-count').textContent = this.gameState.players?.length || 0;
+        // Update zone information
+        if (this.currentZone) {
+            // Calculate terrain statistics
+            const terrainStats = this.calculateTerrainStats();
+            document.getElementById('zone-name').textContent = this.currentZone.id || 'Unknown Zone';
+            document.getElementById('zone-size').textContent = `${terrainStats.size}x${terrainStats.size}`;
+            document.getElementById('zone-terrain').textContent = 
+                `P:${terrainStats.plains} S:${terrainStats.swamps} O:${terrainStats.obstacles}`;
+        }
         
         // PLACEHOLDER: Unit count not yet implemented on server
         document.getElementById('unit-count').textContent = 'N/A';
         
         // Update players list
         this.updatePlayersList();
+    }
+    
+    calculateTerrainStats() {
+        if (!this.currentZone || !this.currentZone.tiles) {
+            return { size: 0, plains: 0, swamps: 0, obstacles: 0 };
+        }
+        
+        const tiles = this.currentZone.tiles;
+        const size = tiles.length;
+        let plains = 0, swamps = 0, obstacles = 0;
+        
+        for (let row of tiles) {
+            for (let tile of row) {
+                switch (tile.surface_type) {
+                    case 'Plain': plains++; break;
+                    case 'Swamp': swamps++; break;
+                    case 'Obstacle': obstacles++; break;
+                }
+            }
+        }
+        
+        return { size, plains, swamps, obstacles };
     }
 
     updatePlayersList() {
@@ -483,7 +564,7 @@ class GeekCraftViewer {
         this.ctx.fillStyle = '#1a1a1a';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        if (!this.gameState) {
+        if (!this.gameState && !this.currentZone) {
             this.renderNoData();
             return;
         }
@@ -493,8 +574,13 @@ class GeekCraftViewer {
         this.ctx.translate(this.camera.x, this.camera.y);
         this.ctx.scale(this.camera.zoom, this.camera.zoom);
         
-        // Draw grid
-        this.renderGrid();
+        // Draw zone terrain if available
+        if (this.currentZone) {
+            this.renderZone();
+        } else {
+            // Draw grid as fallback
+            this.renderGrid();
+        }
         
         // PLACEHOLDER: Resources, units, and buildings are not yet implemented
         // The rendering functions are kept for future development
@@ -514,7 +600,76 @@ class GeekCraftViewer {
         this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText('Waiting for server data...', this.canvas.width / 2, this.canvas.height / 2);
-        this.ctx.fillText('(Connect to see tick and player information)', this.canvas.width / 2, this.canvas.height / 2 + 30);
+        this.ctx.fillText('(Login and connect to see game state and zones)', this.canvas.width / 2, this.canvas.height / 2 + 30);
+    }
+
+    renderZone() {
+        if (!this.currentZone || !this.currentZone.tiles) {
+            return;
+        }
+        
+        const tileSize = 20; // Size of each tile in pixels
+        const tiles = this.currentZone.tiles;
+        
+        // Define colors for each terrain type
+        const terrainColors = {
+            'Plain': '#7cb342',      // Green for plains
+            'Swamp': '#5c6bc0',      // Blue for swamp
+            'Obstacle': '#78909c'    // Gray for obstacles
+        };
+        
+        // Render each tile
+        for (let row = 0; row < tiles.length; row++) {
+            for (let col = 0; col < tiles[row].length; col++) {
+                const tile = tiles[row][col];
+                const surfaceType = tile.surface_type;
+                
+                // Get color for this terrain type
+                const color = terrainColors[surfaceType] || '#333';
+                
+                // Draw tile
+                this.ctx.fillStyle = color;
+                this.ctx.fillRect(
+                    col * tileSize,
+                    row * tileSize,
+                    tileSize,
+                    tileSize
+                );
+                
+                // Draw tile border
+                this.ctx.strokeStyle = '#222';
+                this.ctx.lineWidth = 0.5;
+                this.ctx.strokeRect(
+                    col * tileSize,
+                    row * tileSize,
+                    tileSize,
+                    tileSize
+                );
+            }
+        }
+        
+        // Draw exits if present
+        if (this.currentZone.exits) {
+            this.ctx.fillStyle = '#ffa726'; // Orange for exits
+            this.ctx.font = '14px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            
+            for (const exit of this.currentZone.exits) {
+                const x = exit.x * tileSize + tileSize / 2;
+                const y = exit.y * tileSize + tileSize / 2;
+                
+                // Draw exit marker
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, tileSize / 3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Draw exit direction label
+                this.ctx.fillStyle = '#fff';
+                this.ctx.fillText(exit.direction.charAt(0), x, y);
+                this.ctx.fillStyle = '#ffa726';
+            }
+        }
     }
 
     renderGrid() {

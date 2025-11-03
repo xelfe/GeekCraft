@@ -209,6 +209,39 @@ header h1 {
 }
 
 /* Players panel */
+.zone-panel, .players-panel {
+    margin-top: 20px;
+}
+
+.zone-panel h2, .players-panel h2 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.legend {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--bg-light);
+    border-radius: 4px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid #000;
+}
+
 .player-item {
     background-color: var(--bg-light);
     padding: 10px;
