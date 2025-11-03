@@ -1,3 +1,7 @@
+//! Zone routes module
+//! 
+//! HTTP endpoint handlers for zone generation and retrieval.
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,

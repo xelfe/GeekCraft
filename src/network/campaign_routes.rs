@@ -1,3 +1,7 @@
+//! Campaign routes module
+//! 
+//! HTTP endpoint handlers for campaign operations (start, stop, save, load).
+
 use axum::{
     extract::{Query, State},
     http::StatusCode,

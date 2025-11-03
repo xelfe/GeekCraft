@@ -1,2 +1,0 @@
-mod scripting;
-mod events;

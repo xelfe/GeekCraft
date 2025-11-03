@@ -1,57 +1,29 @@
+//! World module
+//! 
+//! Manages the game world state, including zones and tick counter.
+
 use std::collections::HashMap;
 use crate::game::zone::Zone;
 
-pub struct Terrain {
-    id: u32,
-    name: String,
-    resource_type: ResourceType,
-    resource_amount: u32,
-}
-
-#[derive(PartialEq)]
-pub enum ResourceType {
-    Wood,
-    Stone,
-    Gold,
-}
-
+/// Game world containing zones and game state
 pub struct World {
-    width: u32,
-    height: u32,
-    terrains: Vec<Terrain>,
     tick: u64,
     /// Map of zone_id to Zone for multi-zone world support
     zones: HashMap<String, Zone>,
 }
 
 impl World {
+    /// Create a new game world
     pub fn new() -> Self {
         World {
-            width: 100,
-            height: 100,
-            terrains: Vec::new(),
             tick: 0,
             zones: HashMap::new(),
         }
     }
 
+    /// Get the current game tick
     pub fn get_tick(&self) -> u64 {
         self.tick
-    }
-
-    fn add_terrain(&mut self, terrain: Terrain) {
-        self.terrains.push(terrain);
-    }
-
-    fn get_terrain(&self, id: u32) -> Option<&Terrain> {
-        self.terrains.iter().find(|&t| t.id == id)
-    }
-
-    fn resource_count(&self, resource_type: ResourceType) -> u32 {
-        self.terrains.iter()
-            .filter(|&t| t.resource_type == resource_type)
-            .map(|t| t.resource_amount)
-            .sum()
     }
 
     /// Add a zone to the world
@@ -94,5 +66,11 @@ impl World {
             hash = hash.wrapping_mul(31).wrapping_add(byte as u64);
         }
         hash
+    }
+}
+
+impl Default for World {
+    fn default() -> Self {
+        Self::new()
     }
 }

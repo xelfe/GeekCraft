@@ -1,4 +1,6 @@
-// This file manages network communication, allowing clients to connect and interact with the server.
+//! Network server module
+//! 
+//! Manages HTTP/WebSocket communication, REST API endpoints, and client connections.
 
 use std::sync::Arc;
 use tokio::sync::RwLock;
