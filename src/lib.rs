@@ -6,11 +6,8 @@
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 
-/// Game management module (world, entities, simulation)
+/// Game management module (world, campaign, zones)
 pub mod game;
-
-/// API module for scripting interface
-pub mod api;
 
 /// Network module (server, WebSocket, REST API)
 pub mod network;

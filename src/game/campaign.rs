@@ -101,6 +101,12 @@ impl InMemoryRunStore {
     }
 }
 
+impl Default for InMemoryRunStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Campaign manager handles campaign operations including persistence
 pub struct CampaignManager {
     store: InMemoryRunStore,
@@ -219,18 +225,22 @@ impl CampaignManager {
             .map_err(|e| format!("Failed to read save directory: {}", e))?;
 
         let mut saves = Vec::new();
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                    if let Some(file_name) = path.file_stem().and_then(|s| s.to_str()) {
-                        saves.push(file_name.to_string());
-                    }
+        for entry in entries.flatten() {  // Use flatten() instead of if let Ok
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) == Some("json") {
+                if let Some(file_name) = path.file_stem().and_then(|s| s.to_str()) {
+                    saves.push(file_name.to_string());
                 }
             }
         }
 
         Ok(saves)
+    }
+}
+
+impl Default for CampaignManager {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -231,7 +231,7 @@ impl MongoBackend {
         // Extract database name from URL or use default
         let db_name = mongodb_url
             .split('/')
-            .last()
+            .next_back()  // More efficient than .last() for DoubleEndedIterator
             .and_then(|s| s.split('?').next())
             .filter(|s| !s.is_empty())
             .unwrap_or("geekcraft")
