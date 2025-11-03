@@ -2,6 +2,10 @@
 /target/
 Cargo.lock
 
+# Node.js dependencies (for examples)
+node_modules/
+package-lock.json
+
 # Campaign saves
 /saves/
 

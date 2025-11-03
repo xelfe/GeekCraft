@@ -1,0 +1,15 @@
+{
+  "name": "geekcraft-examples",
+  "version": "0.2.0-alpha",
+  "description": "Node.js dependencies for GeekCraft JavaScript examples",
+  "private": true,
+  "scripts": {
+    "example:node": "node examples/node_client_example.js",
+    "example:zone": "node examples/zone_generation_example.js",
+    "example:campaign": "node examples/campaign_local_save_example.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "ws": "^8.18.3"
+  }
+}

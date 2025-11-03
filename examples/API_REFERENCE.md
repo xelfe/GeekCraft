@@ -4,14 +4,16 @@
 
 This API reference describes the **complete intended API** for GeekCraft. However, many features are currently **placeholders** and not yet implemented on the server side.
 
-### Current Server Support (v0.2.0+)
+### Current Server Support (v0.2.0-alpha)
 
 **✅ WORKING FEATURES:**
 - Authentication system (register, login, logout with Bearer tokens)
-- Multiplayer support (concurrent authenticated users)
-- Game tick counter (real-time updates)
-- Player list (array of player IDs)
-- Code submission and storage
+- Multiplayer support (concurrent authenticated users via WebSocket)
+- Game tick counter (current value, not auto-incrementing)
+- Player list (array of player usernames)
+- Code submission and storage (validated and saved, but not executed)
+- Procedural zone generation (30x30 tile zones with terrain types)
+- Campaign system (start, stop, save, load campaign runs)
 
 **🚧 PLACEHOLDER FEATURES (NOT YET IMPLEMENTED):**
 - Units and unit management

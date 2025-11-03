@@ -2,26 +2,33 @@
 
 This HTML viewer is a basic example of a visualization client for GeekCraft. It demonstrates how to connect to the game server with authentication and display the game state in real-time.
 
-## Current Server Support (v0.2.0+)
+## Current Server Support (v0.2.0-alpha)
 
 The server now requires authentication and provides:
 - ✅ **AUTHENTICATION**: Token-based authentication (register/login required)
 - ✅ **MULTIPLAYER**: Multiple authenticated users can connect concurrently
+- ✅ **ZONE GENERATION**: Procedural 30x30 tile zones with terrain types
+- ✅ **LANDSCAPE DISPLAY**: Terrain visualization (Plain, Swamp, Obstacle, Exits)
 - ✅ **DYNAMIC**: Game tick counter (updated in real-time)
 - ✅ **DYNAMIC**: List of player IDs (strings)
-- 🚧 **PLACEHOLDER**: Units, buildings, resources, and detailed player stats are not yet implemented on the server
+- 🚧 **PLACEHOLDER**: Units, buildings, and detailed player stats are not yet implemented on the server
 
 The viewer displays real-time data for supported features and shows "N/A" for features awaiting server implementation.
 
 ## Features
 
 - ✅ **Authentication** (register, login, logout)
+- ✅ **Zone/Landscape Visualization** (30x30 terrain tiles with exits)
+- ✅ **Terrain Types** - Visual display of Plain, Swamp, Obstacle terrain
+- ✅ **Exit Markers** - Shows zone exits with direction indicators
+- ✅ **Zone Information Panel** - Displays zone stats and terrain distribution
+- ✅ **Terrain Legend** - Color-coded legend for all terrain types
 - ✅ WebSocket connection with authentication
 - ✅ Real-time display of tick and player count
 - ✅ HTML5 canvas for rendering
 - ✅ Responsive user interface
 - ✅ Integrated log console
-- ✅ Camera controls (zoom, scroll)
+- ✅ Camera controls (zoom in/out, pan, reset view)
 - 🚧 Unit selection (placeholder for future development)
 - 🚧 Detailed information on players and units (placeholder for future development)
 
@@ -124,7 +131,7 @@ Modern styles with:
 
 The viewer communicates with the server via WebSocket in JSON. **Authentication is now required.**
 
-### Current Implementation (v0.2.0+)
+### Current Implementation (v0.2.0-alpha)
 
 #### Connection Flow
 
@@ -141,7 +148,7 @@ The viewer communicates with the server via WebSocket in JSON. **Authentication 
 {
     "type": "welcome",
     "message": "Connected to GeekCraft server. Send auth command to authenticate.",
-    "version": "0.2.0",
+    "version": "0.2.0-alpha",
     "requiresAuth": true
 }
 ```

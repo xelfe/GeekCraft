@@ -1,8 +1,11 @@
 # GeekCraft
 
-<img src="https://img.shields.io/badge/version-0.2.0-blue">
+<img src="https://img.shields.io/badge/version-0.2.0--alpha-blue">
 <img src="https://img.shields.io/badge/rust-1.70+-orange">
 <img src="https://img.shields.io/badge/license-MIT-green">
+<img src="https://img.shields.io/badge/status-pre--release-yellow">
+
+> **🚧 Pre-release Alpha Version 0.2.0** - This is an early alpha release. Core infrastructure is complete (authentication, multiplayer, zone generation, campaign system), but the full game simulation and JavaScript sandbox execution are still in development. See [Features](#features) for current implementation status, or check [FEATURES.md](FEATURES.md) for detailed feature documentation.
 
 ## Description
 
@@ -60,22 +63,34 @@ GeekCraft
 ```
 
 ## Features
+
+**✅ Implemented in v0.2.0:**
 - ✅ Rust Game Engine with Tokio async runtime
 - ✅ Axum HTTP/WebSocket Server
 - ✅ **Authentication System** (token-based, bcrypt password hashing)
 - ✅ **Multiplayer Support** (concurrent users with session management)
-- ✅ **Flexible Database** (In-Memory for dev, MongoDB for production MMO)
+- ✅ **Flexible Database** (In-Memory for dev, MongoDB for production)
 - ✅ **Procedural Zone Generation** (30x30 tile zones with terrain types and exits)
+- ✅ **Campaign System** (start, stop, save, load campaign runs)
 - ✅ REST API for code submission and game state
 - ✅ WebSocket for real-time multiplayer communication
 - ✅ Code validation and storage
 - ✅ Basic world simulation (tick counter, terrain, resources)
 - ✅ Integration tests
-- ✅ Example HTML Viewer
+- ✅ Example HTML Viewer (with authentication)
 - ✅ Comprehensive API documentation
-- 🚧 JavaScript Sandbox (code storage implemented, execution pending)
-- 🚧 Entity and movement systems
+- ✅ Working JavaScript examples (authentication, multiplayer, zones, campaigns)
+
+**🚧 In Development:**
+- 🚧 JavaScript Sandbox execution (code storage implemented, Boa/Deno execution pending)
+- 🚧 Entity and movement systems (structure exists, integration pending)
+- 🚧 Real-time game tick simulation
+
+**📅 Planned:**
 - 📅 Combat and building systems
+- 📅 Resource collection mechanics
+- 📅 Zone interconnection
+- 📅 Full game loop with bot execution
 
 ## Installation
 
@@ -163,11 +178,21 @@ ws.onmessage = (e) => {
 ws.send(JSON.stringify({ type: 'getGameState' }));
 ```
 
-5) **Try the examples**
-- Authentication: `examples/auth_example.js`
-- Multiplayer: `examples/multiplayer_example.js`
-- Zone Generation: `examples/zone_generation_example.js`
-- HTML Viewer:
+5) **Try the working examples**
+
+All examples are tested and working in v0.2.0-alpha:
+
+**Node.js Examples** (require `npm install ws node-fetch@2` in project root):
+- `node examples/node_client_example.js` - Complete example with all features
+- `node examples/zone_generation_example.js` - Zone generation demo
+- `node examples/campaign_local_save_example.js` - Campaign system demo
+
+**Browser Examples** (load directly in browser):
+- `examples/auth_example.js` - Authentication workflow
+- `examples/multiplayer_example.js` - Multiplayer client
+- `examples/api_client_example.js` - HTTP/WebSocket client
+
+**HTML Viewer:**
 ```bash
 cd examples/viewer
 # macOS: open index.html
@@ -305,6 +330,7 @@ See [DATABASE.md](DATABASE.md) for detailed database options:
 
 ## Roadmap
 
+### ✅ Completed (v0.2.0 Alpha)
 - [x] Basic project structure
 - [x] Complete documentation
 - [x] JavaScript API for bots
@@ -315,19 +341,27 @@ See [DATABASE.md](DATABASE.md) for detailed database options:
 - [x] **Multiplayer session management**
 - [x] **Flexible database (In-Memory, MongoDB)**
 - [x] **Procedural zone generation (30x30 tiles, terrain types, exits)**
+- [x] **Campaign system (start, stop, save, load)**
 - [x] Code validation and storage
 - [x] Basic world simulation (tick, terrain, resources)
 - [x] Integration tests
-- [x] **JavaScript examples for authentication and multiplayer**
+- [x] **JavaScript examples for all implemented features**
+- [x] **HTML viewer with authentication support**
+
+### 🚧 In Progress
 - [ ] Full JavaScript sandbox with execution (Boa/Deno)
-- [ ] Complete world simulation engine
-- [ ] Entity system for units and buildings
+- [ ] Complete world simulation engine with real-time ticks
+- [ ] Entity system for units and buildings (full integration)
+
+### 📅 Planned Features
 - [ ] Zone interconnection and world navigation
-- [ ] Resource collection and management
-- [ ] Movement system
+- [ ] Resource collection and management (gameplay mechanics)
+- [ ] Movement system with pathfinding
 - [ ] Combat system
-- [ ] Multiplayer synchronization
+- [ ] Building/construction system
+- [ ] Tech tree and progression
 - [ ] Replays and statistics
+- [ ] Tournament system
 
 ## Contributing
 
