@@ -2,6 +2,14 @@
 
 GeekCraft uses MongoDB as its persistent database backend for all game data. This document describes the database schema, configuration, and usage.
 
+## Quick Navigation
+
+- [Database Options](#database-options) - In-Memory vs MongoDB comparison
+- [Standalone Server Deployment Guide](#standalone-server-deployment-guide) - **Complete setup guide for production**
+- [MongoDB Schema](#mongodb-schema) - Collections and data structure
+- [Troubleshooting](#troubleshooting-database-issues) - Common issues and solutions
+- [Backup Strategy](#database-backup-strategy-for-production) - Production backup/restore
+
 ## Database Options
 
 ### 1. **In-Memory** (Default - Development/Testing)
@@ -620,6 +628,468 @@ When switching from In-Memory to MongoDB, existing in-memory data is not migrate
 3. Rejoin active games
 
 **Note:** This is intentional - In-Memory is designed for testing, not production data.
+
+---
+
+## Standalone Server Deployment Guide
+
+This section covers setting up a standalone GeekCraft server with MongoDB from scratch.
+
+### Step 1: Install MongoDB
+
+Choose your platform:
+
+#### Ubuntu/Debian (Recommended for Production)
+```bash
+# Import MongoDB public GPG key
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+# Add MongoDB repository
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
+   sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+# Install MongoDB
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+# Start MongoDB service
+sudo systemctl start mongod
+sudo systemctl enable mongod
+
+# Verify MongoDB is running
+sudo systemctl status mongod
+```
+
+#### macOS
+```bash
+# Install via Homebrew
+brew tap mongodb/brew
+brew install mongodb-community@7.0
+
+# Start MongoDB as a service
+brew services start mongodb-community@7.0
+
+# Verify MongoDB is running
+brew services list | grep mongodb
+```
+
+#### Docker (Alternative)
+```bash
+# Run MongoDB in a container with persistent storage
+docker run -d \
+  --name geekcraft-mongodb \
+  -p 27017:27017 \
+  -v mongodb_data:/data/db \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=yourSecurePassword \
+  mongo:7.0
+
+# Verify container is running
+docker ps | grep geekcraft-mongodb
+```
+
+### Step 2: Initialize MongoDB Database
+
+#### Option A: Automatic Initialization (Recommended)
+
+GeekCraft will automatically create necessary collections and indexes when you first run it:
+
+```bash
+# Set environment variables
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://localhost:27017/geekcraft
+
+# Build GeekCraft
+cd /path/to/GeekCraft
+cargo build --release
+
+# Start the server - database will be initialized automatically
+./target/release/geekcraft
+```
+
+The server will automatically:
+- Connect to MongoDB
+- Create the `geekcraft` database if it doesn't exist
+- Create required collections (`users`, `sessions`)
+- Set up TTL indexes for session expiration
+
+#### Option B: Manual Database Setup
+
+If you want to manually initialize the database:
+
+```bash
+# Connect to MongoDB
+mongosh
+
+# Create the database
+use geekcraft
+
+# Create users collection with unique index
+db.createCollection("users")
+db.users.createIndex({ "username": 1 }, { unique: true })
+
+# Create sessions collection with TTL index
+db.createCollection("sessions")
+db.sessions.createIndex({ "token": 1 })
+db.sessions.createIndex({ "expires_at": 1 }, { expireAfterSeconds: 0 })
+
+# Create counters collection for auto-incrementing IDs
+db.createCollection("counters")
+db.counters.insertOne({ "_id": "user_id", "value": 0 })
+
+# Verify collections were created
+db.getCollectionNames()
+
+# Exit mongosh
+exit
+```
+
+### Step 3: Configure MongoDB Authentication (Production)
+
+For production deployments, enable authentication:
+
+```bash
+# Connect to MongoDB
+mongosh
+
+# Switch to admin database
+use admin
+
+# Create admin user
+db.createUser({
+  user: "geekcraft_admin",
+  pwd: "YOUR_SECURE_PASSWORD_HERE",
+  roles: [
+    { role: "userAdminAnyDatabase", db: "admin" },
+    { role: "dbAdminAnyDatabase", db: "admin" },
+    { role: "readWriteAnyDatabase", db: "admin" }
+  ]
+})
+
+# Create application user for GeekCraft
+use geekcraft
+db.createUser({
+  user: "geekcraft_app",
+  pwd: "YOUR_APP_PASSWORD_HERE",
+  roles: [
+    { role: "readWrite", db: "geekcraft" }
+  ]
+})
+
+# Exit mongosh
+exit
+```
+
+Enable authentication in MongoDB config:
+
+```bash
+# Edit MongoDB config file
+sudo nano /etc/mongod.conf
+
+# Add these lines under 'security' section:
+security:
+  authorization: enabled
+```
+
+Restart MongoDB:
+
+```bash
+sudo systemctl restart mongod
+```
+
+Update your GeekCraft connection string:
+
+```bash
+export MONGODB_URL="mongodb://geekcraft_app:YOUR_APP_PASSWORD_HERE@localhost:27017/geekcraft"
+```
+
+### Step 4: Populate Initial Data (Optional)
+
+If you want to pre-populate the database with test users or initial data:
+
+#### Create Test Users
+
+```bash
+# Start the GeekCraft server
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL=mongodb://localhost:27017/geekcraft
+./target/release/geekcraft
+
+# In another terminal, register test users
+curl -X POST http://localhost:3030/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser1", "password": "password123"}'
+
+curl -X POST http://localhost:3030/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser2", "password": "password123"}'
+
+# Generate zones for test users
+curl -X POST http://localhost:3030/api/zone/generate \
+  -H "Content-Type: application/json" \
+  -d '{"player_id": "testuser1"}'
+
+curl -X POST http://localhost:3030/api/zone/generate \
+  -H "Content-Type: application/json" \
+  -d '{"player_id": "testuser2"}'
+```
+
+#### Bulk Import Data (Advanced)
+
+For bulk data import, create a JSON file:
+
+```json
+// test_users.json
+[
+  {
+    "username": "alice",
+    "password_hash": "$2b$12$KIXv4Q9Z8mN5yR2jP1kL6uJ3hB7wF8xY0sT5nE9dA4gC6fM2lO8pQ",
+    "created_at": 1699564800
+  },
+  {
+    "username": "bob",
+    "password_hash": "$2b$12$LJYw5R0A9oO6zS3kQ2mM7vK4iC8xG9yZ1uU6oF0eB5hD7gN3mP9qR",
+    "created_at": 1699564801
+  }
+]
+```
+
+Import using mongoimport:
+
+```bash
+mongoimport --db geekcraft --collection users --file test_users.json --jsonArray
+```
+
+**Warning:** Never import plain passwords! The example above shows pre-hashed passwords using bcrypt.
+
+### Step 5: Verify Database Setup
+
+```bash
+# Connect to MongoDB
+mongosh geekcraft
+
+# Check collections
+db.getCollectionNames()
+# Should show: [ 'counters', 'sessions', 'users' ]
+
+# Check indexes
+db.users.getIndexes()
+# Should include username unique index
+
+db.sessions.getIndexes()
+# Should include token and expires_at indexes
+
+# Count users
+db.users.countDocuments()
+
+# Exit
+exit
+```
+
+### Step 6: Start Production Server
+
+```bash
+# Set environment variables (add to systemd service or .bashrc)
+export GEEKCRAFT_DB_BACKEND=MONGODB
+export MONGODB_URL="mongodb://geekcraft_app:YOUR_APP_PASSWORD@localhost:27017/geekcraft"
+
+# Start server
+cd /path/to/GeekCraft
+./target/release/geekcraft
+```
+
+### Step 7: Create Systemd Service (Linux Production)
+
+Create a systemd service for automatic startup:
+
+```bash
+# Create service file
+sudo nano /etc/systemd/system/geekcraft.service
+```
+
+Add this content:
+
+```ini
+[Unit]
+Description=GeekCraft Game Server
+After=network.target mongod.service
+Requires=mongod.service
+
+[Service]
+Type=simple
+User=geekcraft
+WorkingDirectory=/opt/geekcraft
+Environment="GEEKCRAFT_DB_BACKEND=MONGODB"
+Environment="MONGODB_URL=mongodb://geekcraft_app:YOUR_PASSWORD@localhost:27017/geekcraft"
+ExecStart=/opt/geekcraft/target/release/geekcraft
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+
+```bash
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable service to start on boot
+sudo systemctl enable geekcraft
+
+# Start service
+sudo systemctl start geekcraft
+
+# Check status
+sudo systemctl status geekcraft
+
+# View logs
+sudo journalctl -u geekcraft -f
+```
+
+### Step 8: Test the Deployment
+
+```bash
+# Health check
+curl http://localhost:3030/api/health
+
+# Register a user
+curl -X POST http://localhost:3030/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testplayer", "password": "testpass123"}'
+
+# Login
+curl -X POST http://localhost:3030/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testplayer", "password": "testpass123"}'
+
+# Generate a zone
+curl -X POST http://localhost:3030/api/zone/generate \
+  -H "Content-Type: application/json" \
+  -d '{"player_id": "testplayer"}'
+
+# List zones
+curl http://localhost:3030/api/zones
+```
+
+---
+
+## Troubleshooting Database Issues
+
+### MongoDB Won't Start
+
+```bash
+# Check MongoDB logs
+sudo tail -f /var/log/mongodb/mongod.log
+
+# Check if port 27017 is in use
+sudo netstat -tlnp | grep 27017
+
+# Check MongoDB service status
+sudo systemctl status mongod
+
+# Restart MongoDB
+sudo systemctl restart mongod
+```
+
+### GeekCraft Can't Connect to MongoDB
+
+```bash
+# Verify MongoDB is running
+mongosh --eval "db.serverStatus()"
+
+# Check connection string format
+echo $MONGODB_URL
+
+# Test connection manually
+mongosh "$MONGODB_URL"
+
+# Check firewall
+sudo ufw status
+sudo ufw allow 27017
+```
+
+### TTL Index Not Auto-Deleting Sessions
+
+```bash
+# Verify TTL index exists
+mongosh geekcraft --eval "db.sessions.getIndexes()"
+
+# Manually create TTL index
+mongosh geekcraft --eval 'db.sessions.createIndex({"expires_at": 1}, {expireAfterSeconds: 0})'
+
+# Check TTL monitor
+mongosh --eval "db.serverStatus().metrics.ttl"
+```
+
+### Database Permissions Issues
+
+```bash
+# Verify user has correct permissions
+mongosh geekcraft -u geekcraft_app -p
+
+# List user permissions
+use geekcraft
+db.runCommand({usersInfo: "geekcraft_app", showPrivileges: true})
+```
+
+---
+
+## Database Backup Strategy for Production
+
+### Automated Daily Backups
+
+Create a backup script:
+
+```bash
+# /opt/scripts/backup-geekcraft.sh
+#!/bin/bash
+BACKUP_DIR="/backup/geekcraft"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR"
+
+# Backup database
+mongodump --db geekcraft --out "$BACKUP_DIR/$DATE"
+
+# Compress backup
+tar -czf "$BACKUP_DIR/geekcraft_$DATE.tar.gz" -C "$BACKUP_DIR" "$DATE"
+rm -rf "$BACKUP_DIR/$DATE"
+
+# Remove backups older than 30 days
+find "$BACKUP_DIR" -name "geekcraft_*.tar.gz" -mtime +30 -delete
+
+echo "Backup completed: $BACKUP_DIR/geekcraft_$DATE.tar.gz"
+```
+
+Add to crontab:
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add daily backup at 2 AM
+0 2 * * * /opt/scripts/backup-geekcraft.sh >> /var/log/geekcraft-backup.log 2>&1
+```
+
+### Restore from Backup
+
+```bash
+# Extract backup
+cd /backup/geekcraft
+tar -xzf geekcraft_20241103_020000.tar.gz
+
+# Restore to MongoDB
+mongorestore --db geekcraft geekcraft_20241103_020000/geekcraft
+
+# Verify restoration
+mongosh geekcraft --eval "db.users.countDocuments()"
+```
 
 ---
 
