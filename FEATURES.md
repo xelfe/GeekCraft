@@ -124,7 +124,15 @@ struct Zone {
   - `online_campaign_example.js` - Online campaign
   - `api_client_example.js` - Browser/Node.js client
   - `basic_bot.js`, `advanced_bot.js`, `template_bot.js` - Bot templates
-- ✅ **HTML Viewer** - Functional visualization client with authentication
+- ✅ **HTML Viewer** - Functional visualization client with:
+  - Authentication support (register, login, logout)
+  - **Zone/landscape display** (30x30 terrain tiles)
+  - **Terrain visualization** (Plain, Swamp, Obstacle terrain types)
+  - **Exit markers** with directional indicators
+  - Zone information panel with terrain statistics
+  - Zoom and pan controls
+  - Real-time game state updates
+  - Console logging
 - ✅ **Complete Documentation** - README, API reference, guides
 - ✅ **API Reference** - Detailed endpoint documentation
 
