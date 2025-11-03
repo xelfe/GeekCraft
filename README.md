@@ -65,6 +65,7 @@ GeekCraft
 - ✅ **Authentication System** (token-based, bcrypt password hashing)
 - ✅ **Multiplayer Support** (concurrent users with session management)
 - ✅ **Flexible Database** (In-Memory for dev, MongoDB for production MMO)
+- ✅ **Procedural Zone Generation** (30x30 tile zones with terrain types and exits)
 - ✅ REST API for code submission and game state
 - ✅ WebSocket for real-time multiplayer communication
 - ✅ Code validation and storage
@@ -165,6 +166,7 @@ ws.send(JSON.stringify({ type: 'getGameState' }));
 5) **Try the examples**
 - Authentication: `examples/auth_example.js`
 - Multiplayer: `examples/multiplayer_example.js`
+- Zone Generation: `examples/zone_generation_example.js`
 - HTML Viewer:
 ```bash
 cd examples/viewer
@@ -176,6 +178,35 @@ node examples/node_client_example.js
 ```
 
 More details and examples: see examples/README.md.
+
+## Procedural Zone Generation
+
+GeekCraft features a procedural zone generation system where each player starts in their own unique 30x30 tile zone:
+
+```bash
+# Generate a zone for a player
+curl -X POST http://localhost:3030/api/zone/generate \
+  -H "Content-Type: application/json" \
+  -d '{"player_id": "alice"}'
+
+# Get zone data
+curl http://localhost:3030/api/zone/player_alice_zone
+
+# List all zones
+curl http://localhost:3030/api/zones
+
+# Run the complete example
+node examples/zone_generation_example.js
+```
+
+**Zone Features:**
+- **30x30 tiles** with procedural terrain
+- **Three terrain types**: Plain (~60%), Swamp (~25%), Obstacle (~15%)
+- **2-4 exits** per zone for future zone interconnection
+- **Deterministic generation**: Same player ID always generates same zone
+- **Server-side**: All generation in Rust for security
+
+See [docs/ZONE_GENERATION.md](docs/ZONE_GENERATION.md) for complete documentation.
 
 ## HTTP and WebSocket API
 - Base URL: http://localhost:3030
@@ -194,6 +225,11 @@ More details and examples: see examples/README.md.
 ### Public Endpoints
 - `GET /` — API info
 - `GET /api/health` — Health check
+
+### Zone Generation Endpoints (Public)
+- `POST /api/zone/generate` — Generate zone for player (body: `{"player_id": "string"}`)
+- `GET /api/zone/:zone_id` — Get zone data
+- `GET /api/zones` — List all zone IDs
 
 ### WebSocket Commands
 - `{"type": "auth", "token": "YOUR_TOKEN"}` — Authenticate WebSocket connection
@@ -278,6 +314,7 @@ See [DATABASE.md](DATABASE.md) for detailed database options:
 - [x] **Authentication and authorization (token-based)**
 - [x] **Multiplayer session management**
 - [x] **Flexible database (In-Memory, MongoDB)**
+- [x] **Procedural zone generation (30x30 tiles, terrain types, exits)**
 - [x] Code validation and storage
 - [x] Basic world simulation (tick, terrain, resources)
 - [x] Integration tests
@@ -285,10 +322,10 @@ See [DATABASE.md](DATABASE.md) for detailed database options:
 - [ ] Full JavaScript sandbox with execution (Boa/Deno)
 - [ ] Complete world simulation engine
 - [ ] Entity system for units and buildings
+- [ ] Zone interconnection and world navigation
 - [ ] Resource collection and management
 - [ ] Movement system
 - [ ] Combat system
-- [ ] Authentication and authorization
 - [ ] Multiplayer synchronization
 - [ ] Replays and statistics
 
