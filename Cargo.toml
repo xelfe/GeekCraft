@@ -1,6 +1,6 @@
 [package]
 name = "geekcraft"
-version = "0.2.0"
+version = "0.2.0-alpha"
 edition = "2021"
 authors = ["GeekCraft Team"]
 description = "A programming game inspired by Screeps and Starcraft where players program bots using JavaScript"

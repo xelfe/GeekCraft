@@ -2,11 +2,11 @@
 
 All notable changes to this project are documented here.
 
-## [0.2.0] - 2025-11-02
+## [0.2.0] - 2025-11-03 (Pre-release Alpha)
 
-### Network Server Implementation 🌐
+### Pre-release Alpha - Core Infrastructure Complete 🚀
 
-Major update implementing the complete network infrastructure with Axum and WebSocket support.
+This pre-release version includes a fully functional authentication system, multiplayer support, procedural zone generation, and campaign management. Ready for early testing and feedback.
 
 ### Added ✅
 
@@ -18,21 +18,35 @@ Major update implementing the complete network infrastructure with Axum and WebS
   - Tracing middleware for request logging
   - Shared application state with Arc/RwLock
 
+#### Authentication System (v0.2.0+)
+- Token-based authentication with Bearer tokens
+- User registration and login endpoints
+- Session management with 24-hour token validity
+- Password hashing with bcrypt
+- Secure logout and session invalidation
+- Protected endpoints requiring authentication
+
 #### REST API Endpoints
 - `GET /` - API information and available endpoints
 - `GET /api/health` - Health check endpoint
-- `POST /api/submit` - Submit player code with validation
-- `GET /api/players` - List all registered players
-- `GET /api/gamestate` - Get current game state (tick count, players)
+- `POST /api/auth/register` - Register new user (public)
+- `POST /api/auth/login` - Login and get authentication token (public)
+- `POST /api/auth/logout` - Logout and invalidate session (protected)
+- `POST /api/submit` - Submit player code with validation (protected)
+- `GET /api/players` - List all registered players (protected)
+- `GET /api/gamestate` - Get current game state (protected)
 
 #### WebSocket Communication
-- Real-time bidirectional communication
-- Welcome message on connection
+- Real-time bidirectional communication with authentication
+- Welcome message on connection indicating authentication requirement
+- Token-based authentication for WebSocket connections
 - Command-based protocol (JSON)
-- Supported commands:
+- Supported commands (require authentication):
+  - `auth` - Authenticate WebSocket connection with token
   - `getPlayers` - Retrieve player list
   - `getGameState` - Get current game state
 - Automatic error handling and client disconnect detection
+- Concurrent authenticated users support
 
 #### Code Validation
 - Maximum code size limit (1MB)
@@ -57,21 +71,60 @@ Major update implementing the complete network infrastructure with Axum and WebS
 - `tests/integration_tests.rs` - Game world initialization test
 - Test infrastructure for future test expansion
 
+#### Procedural Zone Generation (v0.2.0+)
+- 30x30 tile zones with deterministic generation
+- Three terrain types: Plain (~60%), Swamp (~25%), Obstacle (~15%)
+- 2-4 exits per zone (North, South, East, West)
+- Player-specific zones with unique IDs
+- Zone generation endpoints (public):
+  - `POST /api/zone/generate` - Generate zone for player
+  - `GET /api/zone/:zone_id` - Get zone data
+  - `GET /api/zones` - List all zone IDs
+
+#### Campaign System (v0.2.0+)
+- Campaign run management (start, stop, tick)
+- Local file persistence (JSON format)
+- Save/load functionality for campaign runs
+- Campaign endpoints (public):
+  - `POST /api/campaign/start` - Start new campaign run
+  - `GET /api/campaign/state` - Get campaign state
+  - `POST /api/campaign/stop` - Stop campaign run
+  - `POST /api/campaign/save` - Save run to disk
+  - `GET /api/campaign/saves` - List saved runs
+  - `POST /api/campaign/load` - Load run from disk
+
+#### Database Abstraction (v0.2.0+)
+- Flexible database backend support
+- In-Memory database (default, development)
+- MongoDB support (production, via environment variable)
+- Database selection via `GEEKCRAFT_DB_BACKEND` environment variable
+
 #### Client Examples
+- `examples/auth_example.js` - Authentication workflow (browser)
+- `examples/multiplayer_example.js` - Multiplayer client example (browser)
 - `examples/api_client_example.js` - Browser/Node.js HTTP and WebSocket example
-- `examples/node_client_example.js` - Complete Node.js client example
+- `examples/node_client_example.js` - Complete Node.js client example with all features
+- `examples/zone_generation_example.js` - Zone generation demonstration
+- `examples/campaign_local_save_example.js` - Campaign system example
+- `examples/online_campaign_example.js` - Online campaign example
 - `examples/README.md` - Comprehensive API usage documentation
 
 ### Modified 🔧
 
 - `Cargo.toml` - Added dependencies:
   - `axum 0.7` - Web framework with WebSocket support
-  - `axum-extra 0.9` - Additional Axum features
+  - `axum-extra 0.9` - Additional Axum features (typed headers)
   - `tower 0.4` - Service abstraction
   - `tower-http 0.5` - CORS and tracing middleware
   - `tokio-tungstenite 0.21` - WebSocket protocol
   - `futures-util 0.3` - Async utilities
   - `anyhow 1.0` - Error handling
+  - `mongodb 2.8` - MongoDB driver (optional)
+  - `bcrypt 0.15` - Password hashing
+  - `uuid 1.7` - Token generation
+  - `bson 2.9` - BSON serialization for MongoDB
+  - `chrono 0.4` - Date/time handling
+  - `lazy_static 1.4` - Global state management
 
 - `src/main.rs` - Entry point implementation
   - Async runtime with Tokio
@@ -121,13 +174,28 @@ Major update implementing the complete network infrastructure with Axum and WebS
 - Examples for all API endpoints
 - Integration test framework
 
-### Known Limitations
+### Known Limitations & Placeholder Features
 
-- JavaScript sandbox not yet fully implemented (code is stored but not executed)
-- World simulation is basic (no movement, combat, or building)
-- No authentication or authorization
-- No multiplayer synchronization
-- CORS allows all origins (development only)
+**Working Features:**
+- ✅ Authentication and authorization (token-based)
+- ✅ Multiplayer support (concurrent authenticated users)
+- ✅ Procedural zone generation
+- ✅ Campaign system with persistence
+- ✅ Database abstraction (In-Memory, MongoDB)
+
+**Not Yet Implemented:**
+- ⚠️ JavaScript sandbox execution (code is stored but not executed - awaiting Boa/Deno integration)
+- ⚠️ Entity system (units, buildings - structure exists but not fully integrated)
+- ⚠️ Movement and pathfinding
+- ⚠️ Combat mechanics
+- ⚠️ Resource collection system
+- ⚠️ Building/construction system
+- ⚠️ Real-time game tick simulation
+- ⚠️ Zone interconnection
+
+**Development-Only Configuration:**
+- CORS allows all origins (must restrict for production)
+- In-Memory database loses data on restart (use MongoDB for production)
 
 ### Next Steps
 
