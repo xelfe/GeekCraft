@@ -1,5 +1,5 @@
 //! Network server module
-//! 
+//!
 //! Manages HTTP/WebSocket communication, REST API endpoints, and client connections.
 
 use std::sync::Arc;
@@ -19,6 +19,7 @@ use serde::{Deserialize, Serialize};
 use futures_util::{SinkExt, StreamExt};
 
 use crate::game::world::World;
+use crate::game::map_generator::{GameMap, ClusteringConfig};
 use crate::scripting::sandbox::ScriptEngine;
 use crate::auth::AuthService;
 use crate::auth::models::{RegisterRequest, LoginRequest};
@@ -77,9 +78,41 @@ pub struct GameStateResponse {
     pub players: Vec<String>,
 }
 
+// ============================================================================
+// Map Generation API Types
+// ============================================================================
+
+/// Request structure for map generation
+#[derive(Debug, Deserialize)]
+pub struct MapGenerationRequest {
+    /// Width of the map (10-200)
+    pub width: usize,
+    /// Height of the map (10-200)
+    pub height: usize,
+    /// Game mode: "default", "solo", or "online"
+    #[serde(default = "default_mode")]
+    pub mode: String,
+}
+
+fn default_mode() -> String {
+    "default".to_string()
+}
+
+/// Response structure for map generation
+#[derive(Debug, Serialize)]
+pub struct MapGenerationResponse {
+    pub success: bool,
+    pub map: Option<serde_json::Value>,
+    pub error: Option<String>,
+}
+
+// ============================================================================
+// Start Server
+// ============================================================================
+
 /// Start the Axum HTTP and WebSocket server
 pub async fn start_server(
-    game_world: Arc<RwLock<World>>, 
+    game_world: Arc<RwLock<World>>,
     script_engine: Arc<RwLock<ScriptEngine>>,
     auth_service: Arc<AuthService>,
 ) -> anyhow::Result<()> {
@@ -107,6 +140,9 @@ pub async fn start_server(
         .route("/api/zone/generate", post(generate_zone_handler))
         .route("/api/zone/:zone_id", get(get_zone_handler))
         .route("/api/zones", get(list_zones_handler))
+        // Map generation endpoints (public for now)
+        .route("/api/map/generate", post(generate_map_handler))
+        .route("/api/map/test", get(test_map_handler))
         // Protected endpoints (auth required)
         .route("/api/auth/logout", post(logout_handler))
         .route("/api/submit", post(submit_code_handler))
@@ -133,7 +169,7 @@ pub async fn start_server(
     // Bind to address
     let addr = "0.0.0.0:3030";
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    
+
     log::info!("✓ Axum server listening on http://{}", addr);
     log::info!("✓ WebSocket endpoint: ws://{}/ws", addr);
     log::info!("✓ API endpoints:");
@@ -154,12 +190,102 @@ pub async fn start_server(
     log::info!("  - POST /api/zone/generate");
     log::info!("  - GET  /api/zone/:zone_id");
     log::info!("  - GET  /api/zones");
+    log::info!("  - POST /api/map/generate");
+    log::info!("  - GET  /api/map/test");
 
     // Start the server
     axum::serve(listener, app).await?;
-    
+
     Ok(())
 }
+
+// ============================================================================
+// Map Generation Handlers
+// ============================================================================
+
+/// Generate a new map with improved clustering
+/// POST /api/map/generate
+///
+/// Request body:
+/// ```json
+/// {
+///   "width": 80,
+///   "height": 60,
+///   "mode": "solo"
+/// }
+/// ```
+async fn generate_map_handler(
+    State(_state): State<AppState>,
+    Json(payload): Json<MapGenerationRequest>,
+) -> impl IntoResponse {
+    // Validate input dimensions
+    if payload.width < 10 || payload.width > 200 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(MapGenerationResponse {
+                success: false,
+                map: None,
+                error: Some("Width must be between 10 and 200".to_string()),
+            })
+        );
+    }
+
+    if payload.height < 10 || payload.height > 200 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(MapGenerationResponse {
+                success: false,
+                map: None,
+                error: Some("Height must be between 10 and 200".to_string()),
+            })
+        );
+    }
+
+    // Select clustering configuration based on mode
+    let config = match payload.mode.as_str() {
+        "solo" => ClusteringConfig::solo_campaign(),
+        "online" => ClusteringConfig::online_mode(),
+        _ => ClusteringConfig::default(),
+    };
+
+    log::info!(
+        "Generating {}x{} map in {} mode",
+        payload.width,
+        payload.height,
+        payload.mode
+    );
+
+    // Generate the map
+    let map = GameMap::generate(payload.width, payload.height, config);
+
+    (
+        StatusCode::OK,
+        Json(MapGenerationResponse {
+            success: true,
+            map: Some(map.to_json()),
+            error: None,
+        })
+    )
+}
+
+/// Test endpoint for map generation
+/// GET /api/map/test
+async fn test_map_handler() -> impl IntoResponse {
+    Json(serde_json::json!({
+        "status": "ok",
+        "message": "GeekCraft Map Generation API is running",
+        "version": env!("CARGO_PKG_VERSION"),
+        "modes": ["default", "solo", "online"],
+        "dimensions": {
+            "min": 10,
+            "max": 200
+        }
+    }))
+}
+
+// ============================================================================
+// Authentication Middleware
+// ============================================================================
 
 /// Authentication middleware
 async fn auth_middleware(
@@ -169,29 +295,30 @@ async fn auth_middleware(
 ) -> Result<Response, StatusCode> {
     // Skip auth for public endpoints
     let path = request.uri().path();
-    if path == "/" 
-        || path == "/api/health" 
-        || path == "/api/auth/register" 
-        || path == "/api/auth/login" 
+    if path == "/"
+        || path == "/api/health"
+        || path == "/api/auth/register"
+        || path == "/api/auth/login"
         || path == "/ws"
         || path.starts_with("/api/campaign/")
-        || path.starts_with("/api/zone") {
+        || path.starts_with("/api/zone")
+        || path.starts_with("/api/map") {
         return Ok(next.run(request).await);
     }
-    
+
     // Get Authorization header
     let auth_header = request
         .headers()
         .get("Authorization")
         .and_then(|v| v.to_str().ok());
-    
+
     let token = match auth_header {
         Some(header) if header.starts_with("Bearer ") => {
             header.trim_start_matches("Bearer ")
         }
         _ => return Err(StatusCode::UNAUTHORIZED),
     };
-    
+
     // Validate token
     match state.auth_service.validate_token(token) {
         Some(session) => {
@@ -202,6 +329,10 @@ async fn auth_middleware(
         None => Err(StatusCode::UNAUTHORIZED),
     }
 }
+
+// ============================================================================
+// Authentication Handlers
+// ============================================================================
 
 /// Register handler
 async fn register_handler(
@@ -233,10 +364,14 @@ async fn logout_handler(
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
         .unwrap_or("");
-    
+
     let response = state.auth_service.logout(token);
     Json(response)
 }
+
+// ============================================================================
+// Basic Handlers
+// ============================================================================
 
 /// Root handler - provides API information
 async fn root_handler() -> impl IntoResponse {
@@ -257,7 +392,9 @@ async fn root_handler() -> impl IntoResponse {
             "campaign_stop": "POST /api/campaign/stop",
             "campaign_save": "POST /api/campaign/save",
             "campaign_saves": "GET /api/campaign/saves",
-            "campaign_load": "POST /api/campaign/load"
+            "campaign_load": "POST /api/campaign/load",
+            "map_generate": "POST /api/map/generate",
+            "map_test": "GET /api/map/test"
         }
     }))
 }
@@ -270,6 +407,10 @@ async fn health_handler() -> impl IntoResponse {
     }))
 }
 
+// ============================================================================
+// Game Handlers
+// ============================================================================
+
 /// Handler to submit player code
 async fn submit_code_handler(
     State(state): State<AppState>,
@@ -277,7 +418,7 @@ async fn submit_code_handler(
 ) -> impl IntoResponse {
     // Get session from request extensions
     let session = request.extensions().get::<crate::auth::models::Session>().cloned();
-    
+
     let player_id = match session {
         Some(s) => s.username,
         None => {
@@ -290,7 +431,7 @@ async fn submit_code_handler(
             );
         }
     };
-    
+
     // Parse request body with size limit (1MB for code submissions)
     let bytes = match axum::body::to_bytes(request.into_body(), 1_048_576).await {
         Ok(b) => b,
@@ -304,7 +445,7 @@ async fn submit_code_handler(
             );
         }
     };
-    
+
     let payload: CodeSubmission = match serde_json::from_slice(&bytes) {
         Ok(p) => p,
         Err(e) => {
@@ -317,11 +458,11 @@ async fn submit_code_handler(
             );
         }
     };
-    
+
     log::info!("Received code submission from player: {}", player_id);
-    
+
     let mut engine = state.script_engine.write().await;
-    
+
     match engine.submit_code(player_id.clone(), payload.code) {
         Ok(()) => (
             StatusCode::OK,
@@ -347,7 +488,7 @@ async fn submit_code_handler(
 async fn list_players_handler(State(state): State<AppState>) -> impl IntoResponse {
     let engine = state.script_engine.read().await;
     let players = engine.list_players();
-    
+
     Json(PlayersListResponse { players })
 }
 
@@ -356,12 +497,16 @@ async fn game_state_handler(State(state): State<AppState>) -> impl IntoResponse 
     let world = state.game_world.read().await;
     let engine = state.script_engine.read().await;
     let players = engine.list_players();
-    
+
     Json(GameStateResponse {
         tick: world.get_tick(),
         players,
     })
 }
+
+// ============================================================================
+// WebSocket Handlers
+// ============================================================================
 
 /// WebSocket handler - now supports authentication
 async fn websocket_handler(
@@ -374,12 +519,12 @@ async fn websocket_handler(
 /// Handle WebSocket connection with authentication support
 async fn handle_websocket(socket: WebSocket, state: AppState) {
     let (mut sender, mut receiver) = socket.split();
-    
+
     log::info!("WebSocket client connected");
-    
+
     // Track authenticated session
     let mut authenticated_session: Option<crate::auth::models::Session> = None;
-    
+
     // Send welcome message
     let welcome = serde_json::json!({
         "type": "welcome",
@@ -387,17 +532,17 @@ async fn handle_websocket(socket: WebSocket, state: AppState) {
         "version": env!("CARGO_PKG_VERSION"),
         "requiresAuth": true
     });
-    
+
     if let Ok(msg) = serde_json::to_string(&welcome) {
         let _ = sender.send(Message::Text(msg)).await;
     }
-    
+
     // Handle incoming messages
     while let Some(msg) = receiver.next().await {
         match msg {
             Ok(Message::Text(text)) => {
                 log::debug!("Received WebSocket message: {}", text);
-                
+
                 // Try to parse as JSON command
                 if let Ok(command) = serde_json::from_str::<serde_json::Value>(&text) {
                     let response = handle_websocket_command(
@@ -405,7 +550,7 @@ async fn handle_websocket(socket: WebSocket, state: AppState) {
                         &state,
                         &mut authenticated_session
                     ).await;
-                    
+
                     if let Ok(response_text) = serde_json::to_string(&response) {
                         let _ = sender.send(Message::Text(response_text)).await;
                     }
@@ -430,17 +575,17 @@ async fn handle_websocket(socket: WebSocket, state: AppState) {
 
 /// Handle WebSocket commands with authentication support
 async fn handle_websocket_command(
-    command: serde_json::Value, 
+    command: serde_json::Value,
     state: &AppState,
     authenticated_session: &mut Option<crate::auth::models::Session>,
 ) -> serde_json::Value {
     let cmd_type = command.get("type").and_then(|v| v.as_str()).unwrap_or("");
-    
+
     match cmd_type {
         "auth" => {
             // Authenticate via WebSocket
             let token = command.get("token").and_then(|v| v.as_str()).unwrap_or("");
-            
+
             match state.auth_service.validate_token(token) {
                 Some(session) => {
                     let username = session.username.clone();
@@ -468,7 +613,7 @@ async fn handle_websocket_command(
                     "message": "Authentication required. Send auth command first."
                 });
             }
-            
+
             let engine = state.script_engine.read().await;
             let players = engine.list_players();
             serde_json::json!({
@@ -484,7 +629,7 @@ async fn handle_websocket_command(
                     "message": "Authentication required. Send auth command first."
                 });
             }
-            
+
             let world = state.game_world.read().await;
             let engine = state.script_engine.read().await;
             let players = engine.list_players();
@@ -499,6 +644,82 @@ async fn handle_websocket_command(
                 "type": "error",
                 "message": format!("Unknown command type: {}", cmd_type)
             })
+        }
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    // Remove dependency on tower::util::ServiceExt
+    use super::*;
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode};
+    use tower::Service;
+    use std::sync::Arc;
+    use tokio::sync::RwLock;
+    use axum::{Router, routing::post};
+    use crate::game::world::World;
+    use crate::scripting::sandbox::ScriptEngine;
+
+    #[tokio::test]
+    async fn test_map_generation_valid() {
+        let app_state = create_test_app_state();
+        let app = Router::new()
+            .route("/api/map/generate", post(generate_map_handler))
+            .with_state(app_state);
+        let request_body = serde_json::json!({
+            "width": 50,
+            "height": 50,
+            "mode": "default"
+        });
+        let mut app = app.into_service();
+        let request = Request::builder()
+            .method("POST")
+            .uri("/api/map/generate")
+            .header("content-type", "application/json")
+            .body(Body::from(serde_json::to_vec(&request_body).unwrap()))
+            .unwrap();
+        let response = app.call(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+    #[tokio::test]
+    async fn test_map_generation_invalid_dimensions() {
+        let app_state = create_test_app_state();
+        let app = Router::new()
+            .route("/api/map/generate", post(generate_map_handler))
+            .with_state(app_state);
+        let request_body = serde_json::json!({
+            "width": 5,
+            "height": 50,
+            "mode": "default"
+        });
+        let mut app = app.into_service();
+        let request = Request::builder()
+            .method("POST")
+            .uri("/api/map/generate")
+            .header("content-type", "application/json")
+            .body(Body::from(serde_json::to_vec(&request_body).unwrap()))
+            .unwrap();
+        let response = app.call(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+    fn create_test_app_state() -> AppState {
+        use crate::auth::DatabaseBackend;
+        let game_world = Arc::new(tokio::sync::RwLock::new(World::new()));
+        let script_engine = Arc::new(tokio::sync::RwLock::new(ScriptEngine::new()));
+        let auth_db = Arc::new(
+            crate::auth::AuthDatabase::new(DatabaseBackend::InMemory)
+                .expect("Failed to create test auth database")
+        );
+        let auth_service = Arc::new(crate::auth::AuthService::new(auth_db));
+        AppState {
+            game_world,
+            script_engine,
+            auth_service,
         }
     }
 }
