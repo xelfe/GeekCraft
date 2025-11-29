@@ -13,7 +13,7 @@ const SESSION_DURATION: i64 = 86400;
 
 /// Authentication service
 pub struct AuthService {
-    db: Arc<AuthDatabase>,
+    pub db: Arc<AuthDatabase>,
 }
 
 impl AuthService {

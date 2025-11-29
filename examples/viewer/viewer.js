@@ -209,21 +209,28 @@ class GeekCraftViewer {
     // Zone Management Functions
     async fetchZones() {
         try {
-            // Get list of all zones
-            const response = await fetch(`${this.apiUrl}/api/zones`);
+            // Get the authenticated user's zone
+            if (!this.token) {
+                this.log('Cannot fetch zone: Not authenticated', 'warning');
+                return;
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/zone/me`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
             const data = await response.json();
-            
-            if (data.success && data.zone_ids && data.zone_ids.length > 0) {
-                this.zoneList = data.zone_ids;
-                this.log(`✓ Found ${data.zone_ids.length} zone(s)`, 'success');
-                
-                // Load the first zone automatically
-                await this.loadZone(data.zone_ids[0]);
+
+            if (data.success && data.zone) {
+                this.currentZone = data.zone;
+                this.log(`✓ Loaded your zone: ${data.zone.id}`, 'success');
+                this.updateUI();
             } else {
-                this.log('No zones found. Generate a zone first.', 'info');
+                this.log(`Failed to load your zone: ${data.message}`, 'error');
             }
         } catch (error) {
-            this.log(`Error fetching zones: ${error.message}`, 'error');
+            this.log(`Error fetching zone: ${error.message}`, 'error');
         }
     }
     
