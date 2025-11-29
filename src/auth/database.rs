@@ -45,6 +45,8 @@ pub trait AuthDatabaseTrait: Send + Sync {
     fn create_user(&self, username: &str, password_hash: &str) -> Result<User, String>;
     /// Get a user by username
     fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String>;
+    /// Update a user's zone_id
+    fn update_user_zone(&self, user_id: i64, zone_id: &str) -> Result<(), String>;
     /// Create a new session for a user
     fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String>;
     /// Get a session by token
@@ -83,7 +85,12 @@ impl AuthDatabase {
     pub fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String> {
         self.backend.get_user_by_username(username)
     }
-    
+
+    /// Update a user's zone_id
+    pub fn update_user_zone(&self, user_id: i64, zone_id: &str) -> Result<(), String> {
+        self.backend.update_user_zone(user_id, zone_id)
+    }
+
     /// Create a new session for a user
     pub fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String> {
         self.backend.create_session(token, user_id, expires_at)
@@ -146,17 +153,34 @@ impl AuthDatabaseTrait for InMemoryBackend {
             username: username.to_string(),
             password_hash: password_hash.to_string(),
             created_at: now,
+            zone_id: None,
         };
-        
+
         users.insert(username.to_string(), user.clone());
         self.users_by_id.lock().unwrap().insert(user_id, user.clone());
-        
+
         Ok(user)
     }
-    
+
     fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String> {
         let users = self.users.lock().unwrap();
         Ok(users.get(username).cloned())
+    }
+
+    fn update_user_zone(&self, user_id: i64, zone_id: &str) -> Result<(), String> {
+        let mut users_by_id = self.users_by_id.lock().unwrap();
+        let user = users_by_id.get_mut(&user_id)
+            .ok_or("User not found")?;
+
+        user.zone_id = Some(zone_id.to_string());
+
+        // Update in username map as well
+        let mut users = self.users.lock().unwrap();
+        if let Some(user_by_name) = users.get_mut(&user.username) {
+            user_by_name.zone_id = Some(zone_id.to_string());
+        }
+
+        Ok(())
     }
     
     fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String> {
@@ -359,21 +383,22 @@ impl AuthDatabaseTrait for MongoBackend {
                 username: username.to_string(),
                 password_hash: password_hash.to_string(),
                 created_at: now,
+                zone_id: None,
             };
-            
+
             // Insert user document
             let user_doc = to_document(&user)
                 .map_err(|e| format!("Failed to serialize user: {}", e))?;
-            
+
             users_collection
                 .insert_one(user_doc, None)
                 .await
                 .map_err(|e| format!("MongoDB error: {}", e))?;
-            
+
             Ok(user)
         })
     }
-    
+
     fn get_user_by_username(&self, username: &str) -> Result<Option<User>, String> {
         let db = self.get_database();
         let users_collection = db.collection::<Document>("users");
@@ -397,7 +422,28 @@ impl AuthDatabaseTrait for MongoBackend {
             }
         })
     }
-    
+
+    fn update_user_zone(&self, user_id: i64, zone_id: &str) -> Result<(), String> {
+        let db = self.get_database();
+        let users_collection = db.collection::<Document>("users");
+
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| format!("Failed to create runtime: {}", e))?;
+
+        rt.block_on(async {
+            users_collection
+                .update_one(
+                    doc! { "id": user_id },
+                    doc! { "$set": { "zone_id": zone_id } },
+                    None
+                )
+                .await
+                .map_err(|e| format!("MongoDB error: {}", e))?;
+
+            Ok(())
+        })
+    }
+
     fn create_session(&self, token: &str, user_id: i64, expires_at: i64) -> Result<(), String> {
         let db = self.get_database();
         let users_collection = db.collection::<Document>("users");

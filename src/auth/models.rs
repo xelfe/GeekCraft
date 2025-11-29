@@ -14,6 +14,8 @@ pub struct User {
     pub password_hash: String,
     /// Account creation timestamp (Unix epoch)
     pub created_at: i64,
+    /// Zone ID assigned to this user
+    pub zone_id: Option<String>,
 }
 
 /// Active session
