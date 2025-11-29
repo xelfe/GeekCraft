@@ -1,5 +1,5 @@
 //! GeekCraft - Entry Point
-//! 
+//!
 //! Application entry point. Initializes the server and starts the game engine.
 
 use geekcraft::{game, network, scripting, auth};
@@ -11,14 +11,14 @@ use tokio::sync::RwLock;
 async fn main() -> anyhow::Result<()> {
     // Initialize logger
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-    
+
     info!("🎮 Starting GeekCraft v{}", env!("CARGO_PKG_VERSION"));
-    
+
     // Choose database backend based on environment variable
     // Options: INMEMORY (default), MONGODB
     let db_backend = std::env::var("GEEKCRAFT_DB_BACKEND")
         .unwrap_or_else(|_| "INMEMORY".to_string());
-    
+
     let backend = match db_backend.to_uppercase().as_str() {
         "MONGODB" => {
             let mongodb_url = std::env::var("MONGODB_URL")
@@ -32,45 +32,47 @@ async fn main() -> anyhow::Result<()> {
             auth::DatabaseBackend::InMemory
         }
     };
-    
+
     // Initialize authentication database
     let auth_db = Arc::new(auth::AuthDatabase::new(backend)
         .expect("Failed to initialize authentication database"));
     info!("✓ Authentication database initialized");
-    
+
     // Create authentication service
     let auth_service = Arc::new(auth::AuthService::new(auth_db));
     info!("✓ Authentication service initialized");
-    
+
     // Create game world
     let game_world = Arc::new(RwLock::new(game::world::World::new()));
     info!("✓ Game world initialized");
-    
+
     // Create scripting engine
     let script_engine = Arc::new(RwLock::new(scripting::sandbox::ScriptEngine::new()));
     info!("✓ Scripting engine initialized");
-    
-    // Start network server
+
+    // Start network server with map generation support
     let server_handle = tokio::spawn(async move {
         if let Err(e) = network::server::start_server(
-            game_world.clone(), 
+            game_world.clone(),
             script_engine.clone(),
             auth_service.clone(),
         ).await {
             error!("❌ Server error: {}", e);
         }
     });
-    
+
     info!("✓ Network server started at http://localhost:3030");
     info!("✓ WebSocket available at ws://localhost:3030/ws");
-    info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    info!("✓ Map generation API: POST /api/map/generate");
+    info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     info!("🚀 GeekCraft is ready!");
     info!("📚 Check out the examples in /examples");
     info!("🔐 Authentication enabled - register to start playing");
-    info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
+    info!("🗺️  Map generation with improved clustering enabled");
+    info!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
     // Wait for server to finish
     server_handle.await?;
-    
+
     Ok(())
 }

@@ -607,26 +607,49 @@ class GeekCraftViewer {
         if (!this.currentZone || !this.currentZone.tiles) {
             return;
         }
-        
+    
         const tileSize = 20; // Size of each tile in pixels
         const tiles = this.currentZone.tiles;
-        
-        // Define colors for each terrain type
+    
+        // Define colors for each terrain type (Merged old and new types)
         const terrainColors = {
-            'Plain': '#7cb342',      // Green for plains
-            'Swamp': '#5c6bc0',      // Blue for swamp
-            'Obstacle': '#78909c'    // Gray for obstacles
+            // Old types (zone.rs)
+            'Plain': '#7cb342',      // Green
+            'Swamp': '#5c6bc0',      // Blue
+            'Obstacle': '#78909c',   // Gray
+            
+            // New types (map_generator.rs)
+            'Grass': '#7cb342',      // Green
+            'Forest': '#2e7d32',     // Dark Green
+            'Mountain': '#757575',   // Dark Gray
+            'Water': '#2196f3',      // Blue
+            'Desert': '#fdd835',     // Yellow
+            'Snow': '#e0f7fa'        // White/Cyan
         };
-        
+    
         // Render each tile
         for (let row = 0; row < tiles.length; row++) {
             for (let col = 0; col < tiles[row].length; col++) {
                 const tile = tiles[row][col];
-                const surfaceType = tile.surface_type;
                 
+                // Handle both data formats:
+                // 1. Old: Object with surface_type ({ x: 0, y: 0, surface_type: "Plain" })
+                // 2. New: Direct string/Enum ("Grass")
+                let surfaceType;
+                if (typeof tile === 'object' && tile !== null && tile.surface_type) {
+                    surfaceType = tile.surface_type;
+                } else if (typeof tile === 'string') {
+                    surfaceType = tile;
+                } else if (typeof tile === 'object' && tile.tile_type) {
+                    // Handle case where new generator might wrap it in an object
+                    surfaceType = tile.tile_type;
+                } else {
+                    surfaceType = 'Unknown';
+                }
+            
                 // Get color for this terrain type
                 const color = terrainColors[surfaceType] || '#333';
-                
+            
                 // Draw tile
                 this.ctx.fillStyle = color;
                 this.ctx.fillRect(
@@ -635,7 +658,7 @@ class GeekCraftViewer {
                     tileSize,
                     tileSize
                 );
-                
+            
                 // Draw tile border
                 this.ctx.strokeStyle = '#222';
                 this.ctx.lineWidth = 0.5;
@@ -654,19 +677,40 @@ class GeekCraftViewer {
             this.ctx.font = '14px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
-            
+
             for (const exit of this.currentZone.exits) {
-                const x = exit.x * tileSize + tileSize / 2;
-                const y = exit.y * tileSize + tileSize / 2;
-                
-                // Draw exit marker
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, tileSize / 3, 0, Math.PI * 2);
-                this.ctx.fill();
-                
-                // Draw exit direction label
+                const width = exit.width || 1; // Default to 1 if not specified
+
+                // Determine which tiles the exit spans
+                const exitTiles = [];
+                if (exit.direction === 'North' || exit.direction === 'South') {
+                    // Horizontal exit
+                    for (let i = 0; i < width; i++) {
+                        exitTiles.push({ x: exit.x + i, y: exit.y });
+                    }
+                } else {
+                    // Vertical exit (East/West)
+                    for (let i = 0; i < width; i++) {
+                        exitTiles.push({ x: exit.x, y: exit.y + i });
+                    }
+                }
+
+                // Draw exit markers for each tile
+                for (const tile of exitTiles) {
+                    const x = tile.x * tileSize + tileSize / 2;
+                    const y = tile.y * tileSize + tileSize / 2;
+
+                    // Draw exit marker
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, tileSize / 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+
+                // Draw exit direction label on the first tile
+                const labelX = exit.x * tileSize + tileSize / 2;
+                const labelY = exit.y * tileSize + tileSize / 2;
                 this.ctx.fillStyle = '#fff';
-                this.ctx.fillText(exit.direction.charAt(0), x, y);
+                this.ctx.fillText(exit.direction.charAt(0), labelX, labelY);
                 this.ctx.fillStyle = '#ffa726';
             }
         }

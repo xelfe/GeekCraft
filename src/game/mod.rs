@@ -5,3 +5,5 @@
 pub mod world;
 pub mod campaign;
 pub mod zone;
+pub mod map_generator;
+
