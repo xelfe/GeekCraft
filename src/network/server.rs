@@ -35,6 +35,7 @@ use crate::network::zone_routes::{
     generate_zone_handler,
     get_zone_handler,
     list_zones_handler,
+    get_my_zone_handler,
 };
 
 /// Shared application state
@@ -148,6 +149,7 @@ pub async fn start_server(
         .route("/api/submit", post(submit_code_handler))
         .route("/api/players", get(list_players_handler))
         .route("/api/gamestate", get(game_state_handler))
+        .route("/api/zone/me", get(get_my_zone_handler))
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth_middleware))
         // WebSocket endpoint
         .route("/ws", get(websocket_handler))
@@ -301,7 +303,7 @@ async fn auth_middleware(
         || path == "/api/auth/login"
         || path == "/ws"
         || path.starts_with("/api/campaign/")
-        || path.starts_with("/api/zone")
+        || (path.starts_with("/api/zone") && path != "/api/zone/me")
         || path.starts_with("/api/map") {
         return Ok(next.run(request).await);
     }
