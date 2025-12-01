@@ -39,11 +39,11 @@ async fn main() -> anyhow::Result<()> {
     info!("✓ Authentication database initialized");
 
     // Create authentication service
-    let auth_service = Arc::new(auth::AuthService::new(auth_db));
+    let auth_service = Arc::new(auth::AuthService::new(auth_db.clone()));
     info!("✓ Authentication service initialized");
 
     // Create game world
-    let game_world = Arc::new(RwLock::new(game::world::World::new()));
+    let game_world = Arc::new(RwLock::new(game::world::World::new(auth_db)));
     info!("✓ Game world initialized");
 
     // Create scripting engine

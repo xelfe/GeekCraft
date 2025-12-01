@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 /// Size of each zone in tiles
-pub const ZONE_SIZE: usize = 50;
+pub const ZONE_SIZE: usize = 30;
 
 /// Surface types that can appear in a zone
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

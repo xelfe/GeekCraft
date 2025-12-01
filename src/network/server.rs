@@ -656,7 +656,6 @@ async fn handle_websocket_command(
 
 #[cfg(test)]
 mod tests {
-    // Remove dependency on tower::util::ServiceExt
     use super::*;
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
@@ -688,6 +687,7 @@ mod tests {
         let response = app.call(request).await.unwrap();
         assert_eq!(response.status(), StatusCode::OK);
     }
+
     #[tokio::test]
     async fn test_map_generation_invalid_dimensions() {
         let app_state = create_test_app_state();
@@ -709,15 +709,21 @@ mod tests {
         let response = app.call(request).await.unwrap();
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
     }
+
+    // FIXED: World constructor now requires auth_db
     fn create_test_app_state() -> AppState {
         use crate::auth::DatabaseBackend;
-        let game_world = Arc::new(tokio::sync::RwLock::new(World::new()));
-        let script_engine = Arc::new(tokio::sync::RwLock::new(ScriptEngine::new()));
+
         let auth_db = Arc::new(
             crate::auth::AuthDatabase::new(DatabaseBackend::InMemory)
                 .expect("Failed to create test auth database")
         );
+
+        // FIXED: Pass auth_db to World::new()
+        let game_world = Arc::new(tokio::sync::RwLock::new(World::new(auth_db.clone())));
+        let script_engine = Arc::new(tokio::sync::RwLock::new(ScriptEngine::new()));
         let auth_service = Arc::new(crate::auth::AuthService::new(auth_db));
+
         AppState {
             game_world,
             script_engine,

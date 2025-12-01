@@ -1,4 +1,7 @@
-//! Data models for authentication
+//! Data models for authentication - CLEAN VERSION
+//!
+//! User.zone_id is now just a reference/cache to the zone assigned by World.
+//! It can be None initially and gets populated when user first spawns.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +17,8 @@ pub struct User {
     pub password_hash: String,
     /// Account creation timestamp (Unix epoch)
     pub created_at: i64,
-    /// Zone ID assigned to this user
+    /// Zone ID reference (populated lazily when player first spawns)
+    /// This is a CACHE - World is the source of truth
     pub zone_id: Option<String>,
 }
 
